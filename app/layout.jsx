@@ -46,7 +46,7 @@ export default async function RootLayout({ children }) {
         <Layout
           navbar={navbar}
           pageMap={await getPageMap()}
-          docsRepositoryBase="https://github.com/YOUR_USERNAME/vio-docs"
+          docsRepositoryBase="https://github.com/angelosv/vio-docs"
           footer={footer}
           darkMode={true}
           nextThemes={{

@@ -6,9 +6,9 @@ export default {
     </span>
   ),
   project: {
-    link: 'https://github.com/YOUR_USERNAME/vio-docs'
+    link: 'https://github.com/angelosv/vio-docs'
   },
-  docsRepositoryBase: 'https://github.com/YOUR_USERNAME/vio-docs',
+  docsRepositoryBase: 'https://github.com/angelosv/vio-docs',
   useNextSeoProps() {
     return {
       titleTemplate: '%s – Vio'
