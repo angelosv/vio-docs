@@ -1,3 +1,74 @@
 # Installation
 
-Content coming soon...
+Add the Vio Swift SDK to your project using Swift Package Manager or CocoaPods.
+
+## Swift Package Manager (Recommended)
+
+### Using Xcode
+
+1. Open your Xcode project
+2. Go to **File → Add Package Dependencies...**
+3. Enter the repository URL:
+
+   ```
+   https://github.com/ReachuDevteam/ReachuSwiftSDK.git
+   ```
+
+4. Select the version (e.g. `1.0.0` or latest)
+5. Choose the modules you need:
+   - **ReachuCore** — Required
+   - **ReachuUI** — SwiftUI components
+   - **ReachuLiveShow** — Livestream logic
+   - **ReachuLiveUI** — Livestream UI
+   - **ReachuComplete** — All modules
+
+### Using Package.swift
+
+Add to your `Package.swift`:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/ReachuDevteam/ReachuSwiftSDK.git", from: "1.0.0")
+]
+```
+
+Then add the products to your target:
+
+```swift
+.target(
+    name: "YourApp",
+    dependencies: [
+        .product(name: "ReachuUI", package: "ReachuSwiftSDK"),
+        .product(name: "ReachuCore", package: "ReachuSwiftSDK")
+    ]
+)
+```
+
+## CocoaPods
+
+Add to your `Podfile`:
+
+```ruby
+platform :ios, '15.0'
+
+target 'YourApp' do
+  use_frameworks!
+  
+  pod 'ReachuSwiftSDK', :git => 'https://github.com/ReachuDevteam/ReachuSwiftSDK.git', :tag => '1.0.0'
+end
+```
+
+Then run:
+
+```bash
+pod install
+```
+
+## Minimum Requirements
+
+| Platform | Minimum Version |
+|----------|-----------------|
+| iOS | 15.0 |
+| macOS | 12.0 |
+| tvOS | 15.0 |
+| watchOS | 8.0 |

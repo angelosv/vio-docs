@@ -1,3 +1,67 @@
 # Quick Start
 
-Content coming soon...
+Get the Vio Swift SDK running in your app in under 5 minutes.
+
+## 1. Add the Package
+
+In Xcode: **File → Add Package Dependencies...**
+
+```
+https://github.com/ReachuDevteam/ReachuSwiftSDK.git
+```
+
+Select the latest version and add the modules you need (e.g. `ReachuCore`, `ReachuUI`).
+
+## 2. Configure the SDK
+
+In your app's entry point (e.g. `@main` App struct):
+
+```swift
+import ReachuCore
+
+@main
+struct MyApp: App {
+    init() {
+        // Configure with your API credentials
+        ReachuSDK.configure(
+            apiKey: "your-api-key",
+            environment: .production
+        )
+    }
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+## 3. Add a Product Card
+
+```swift
+import SwiftUI
+import ReachuUI
+
+struct ProductListView: View {
+    var body: some View {
+        VStack {
+            ProductCard(
+                productId: "123",
+                title: "Sample Product",
+                price: 29.99
+            )
+        }
+    }
+}
+```
+
+## 4. Run Your App
+
+Build and run. You should see the product card rendered with the Vio styling.
+
+## What's Next?
+
+- [Installation](/swift/installation) — Detailed setup with SPM and CocoaPods
+- [Configuration](/swift/configuration) — Environment, themes, and options
+- [Core Concepts](/swift/core-concepts) — Understand the SDK architecture

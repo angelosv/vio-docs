@@ -1,0 +1,627 @@
+/* Vio Landing - Pure CSS, no Tailwind dependency */
+
+/* Animated background glow */
+.vio-landing__bg-glow {
+  position: fixed;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+  animation: vio-glow-float 20s ease-in-out infinite;
+}
+
+.vio-landing__bg-glow--1 {
+  width: 400px;
+  height: 400px;
+  background: #a855f7;
+  top: -100px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.vio-landing__bg-glow--2 {
+  width: 300px;
+  height: 300px;
+  background: #7e22ce;
+  top: 50%;
+  right: -50px;
+  animation-delay: -7s;
+  animation-duration: 25s;
+}
+
+.vio-landing__bg-glow--3 {
+  width: 350px;
+  height: 350px;
+  background: #c084fc;
+  bottom: -100px;
+  left: 30%;
+  animation-delay: -14s;
+  animation-duration: 22s;
+}
+
+@keyframes vio-glow-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 30px) scale(0.95);
+  }
+}
+
+/* Hide "Index" title and breadcrumb on home page */
+main:has(.vio-landing) h1:first-child,
+article:has(.vio-landing) h1:first-child,
+body:has(.vio-landing) [title="Index"] {
+  display: none !important;
+}
+
+.vio-landing {
+  position: relative;
+  min-height: 100vh;
+  background: transparent;
+}
+
+/* Remove black background from Nextra content wrapper on landing page so glow shows through */
+body:has(.vio-landing) main,
+body:has(.vio-landing) [class*="nextra-content"],
+body:has(.vio-landing) article,
+body:has(.vio-landing) div:has(> .vio-landing) {
+  background: transparent !important;
+}
+
+.vio-landing__grid {
+  position: fixed;
+  z-index: -2;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image:
+    linear-gradient(rgba(168, 85, 247, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168, 85, 247, 0.5) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Hero */
+.vio-landing__hero {
+  position: relative;
+  padding: 5rem 1.5rem 4rem;
+  max-width: 56rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .vio-landing__hero {
+    padding-top: 7rem;
+    padding-bottom: 5rem;
+  }
+}
+
+.vio-landing__badge {
+  display: inline-block;
+  padding: 0.375rem 1rem;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+  color: #d1d5db;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.vio-landing__title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: white;
+  margin: 0 0 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .vio-landing__title {
+    font-size: 3.75rem;
+  }
+}
+
+.vio-landing__title-accent {
+  color: #c084fc;
+}
+
+.vio-landing__subtitle {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: #9ca3af;
+  max-width: 42rem;
+  margin: 0 auto 2rem;
+}
+
+@media (min-width: 768px) {
+  .vio-landing__subtitle {
+    font-size: 1.25rem;
+  }
+}
+
+.vio-landing__hero-preview {
+  margin: 0 auto 2rem;
+  max-width: 42rem;
+  padding: 0 1rem;
+}
+
+.vio-landing__pillars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 36rem;
+  margin: 0 auto 2rem;
+  text-align: left;
+  font-size: 0.9375rem;
+  color: #9ca3af;
+}
+
+@media (min-width: 640px) {
+  .vio-landing__pillars {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem 2rem;
+    max-width: 100%;
+  }
+
+  .vio-landing__pillar {
+    flex: 1;
+    min-width: 10rem;
+  }
+}
+
+.vio-landing__pillar strong {
+  color: #c084fc;
+  margin-right: 0.25rem;
+}
+
+.vio-landing__cta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .vio-landing__cta {
+    flex-direction: row;
+  }
+}
+
+.vio-landing__btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.vio-landing__btn:hover {
+  opacity: 0.9;
+}
+
+.vio-landing__btn--primary {
+  background: #a855f7;
+  color: white;
+}
+
+.vio-landing__btn--secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vio-landing__btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.vio-landing__meta {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+.vio-landing__meta a {
+  color: #c084fc;
+  text-decoration: none;
+}
+
+.vio-landing__meta a:hover {
+  color: #e9d5ff;
+}
+
+/* SDK cards */
+.vio-landing__sdks {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 3rem;
+}
+
+.vio-landing__sdk-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 2rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  text-decoration: none;
+  color: white;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.vio-landing__sdk-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.vio-landing__sdk-card--disabled {
+  opacity: 0.6;
+}
+
+.vio-landing__sdk-icon {
+  color: #c084fc;
+}
+
+.vio-landing__sdk-card small {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Sandbox */
+.vio-landing__hero-preview .vio-landing__sandbox-inner {
+  margin: 0;
+}
+
+.vio-landing__sandbox {
+  position: relative;
+  padding: 0 1.5rem 6rem;
+}
+
+.vio-landing__sandbox-inner {
+  max-width: 64rem;
+  margin: 0 auto;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1a1a1a;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.vio-landing__sandbox-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #252525;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vio-landing__sandbox-dots {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.vio-landing__sandbox-dots span {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+.vio-landing__sandbox-dots span:nth-child(1) { background: rgba(239, 68, 68, 0.8); }
+.vio-landing__sandbox-dots span:nth-child(2) { background: rgba(234, 179, 8, 0.8); }
+.vio-landing__sandbox-dots span:nth-child(3) { background: rgba(34, 197, 94, 0.8); }
+
+.vio-landing__sandbox-label {
+  margin-left: 1rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.vio-landing__sandbox-content {
+  display: flex;
+  min-height: 340px;
+}
+
+.vio-landing__sandbox-sidebar {
+  width: 13rem;
+  padding: 1rem;
+  background: #1e1e1e;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vio-landing__sandbox-sidebar:last-of-type {
+  border-right: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vio-landing__sandbox-sidebar-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.vio-landing__sandbox-sidebar-item {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.vio-landing__sandbox-sidebar-item--active {
+  color: #c084fc;
+}
+
+.vio-landing__sandbox-preview {
+  flex: 1;
+  padding: 2rem;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vio-landing__sandbox-preview-card {
+  text-align: center;
+  max-width: 16rem;
+}
+
+.vio-landing__sandbox-preview-icon {
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto 1rem;
+  border-radius: 0.75rem;
+  background: rgba(168, 85, 247, 0.2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M3 9h18M9 21V9'/%3E%3C/svg%3E");
+  background-size: 40px 40px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.vio-landing__sandbox-preview-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.25rem;
+}
+
+.vio-landing__sandbox-preview-card p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.vio-landing__sandbox-code {
+  font-size: 0.75rem;
+  font-family: ui-monospace, monospace;
+  color: #9ca3af;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Features */
+.vio-landing__features {
+  position: relative;
+  padding: 0 1.5rem 6rem;
+}
+
+.vio-landing__features-title {
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin: 0 0 3rem;
+}
+
+.vio-landing__features-grid {
+  max-width: 64rem;
+  margin: 0 auto;
+  display: grid;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .vio-landing__features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .vio-landing__features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.vio-landing__feature-card {
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: border-color 0.2s;
+}
+
+.vio-landing__feature-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.vio-landing__feature-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #c084fc;
+}
+
+.vio-landing__feature-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.5rem;
+}
+
+.vio-landing__feature-desc {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* CTA */
+.vio-landing__cta-section {
+  position: relative;
+  padding: 0 1.5rem 6rem;
+  text-align: center;
+}
+
+.vio-landing__cta-social {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem;
+}
+
+.vio-landing__cta-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 1rem;
+}
+
+.vio-landing__cta-desc {
+  color: #9ca3af;
+  margin: 0 0 2rem;
+}
+
+/* ========== Light mode overrides ========== */
+html.light .vio-landing__bg-glow {
+  opacity: 0.2;
+}
+
+html.light .vio-landing__grid {
+  opacity: 0.08;
+  background-image:
+    linear-gradient(rgba(126, 34, 206, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126, 34, 206, 0.4) 1px, transparent 1px);
+}
+
+html.light .vio-landing__badge {
+  color: #4b5563;
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+html.light .vio-landing__title {
+  color: #111827;
+}
+
+html.light .vio-landing__title-accent {
+  color: #7c3aed;
+}
+
+html.light .vio-landing__subtitle {
+  color: #6b7280;
+}
+
+html.light .vio-landing__pillars {
+  color: #6b7280;
+}
+
+html.light .vio-landing__pillar strong {
+  color: #7c3aed;
+}
+
+html.light .vio-landing__btn--secondary {
+  background: rgba(0, 0, 0, 0.04);
+  color: #374151;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+html.light .vio-landing__btn--secondary:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+html.light .vio-landing__meta {
+  color: #6b7280;
+}
+
+html.light .vio-landing__meta a {
+  color: #7c3aed;
+}
+
+html.light .vio-landing__meta a:hover {
+  color: #6d28d9;
+}
+
+html.light .vio-landing__sdk-card {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  color: #111827;
+}
+
+html.light .vio-landing__sdk-card:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+html.light .vio-landing__sdk-icon {
+  color: #7c3aed;
+}
+
+html.light .vio-landing__sdk-card small {
+  color: #6b7280;
+}
+
+html.light .vio-landing__sandbox-inner {
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+html.light .vio-landing__features-title {
+  color: #6b7280;
+}
+
+html.light .vio-landing__feature-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+html.light .vio-landing__feature-card:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+html.light .vio-landing__feature-title {
+  color: #111827;
+}
+
+html.light .vio-landing__feature-desc {
+  color: #6b7280;
+}
+
+html.light .vio-landing__cta-social {
+  color: #6b7280;
+}
+
+html.light .vio-landing__cta-title {
+  color: #111827;
+}
+
+html.light .vio-landing__cta-desc {
+  color: #6b7280;
+}
