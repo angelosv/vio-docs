@@ -43,6 +43,16 @@ git push -u origin main
    - Nombre: `docs`
    - Valor: `cname.vercel-dns.com`
 
+### Alternativa: Vercel CLI
+
+```bash
+npm i -g vercel
+cd /Users/angelo/vio-docs
+vercel
+# Sigue las instrucciones para linkear el proyecto
+vercel --prod
+```
+
 ---
 
 **Nota**: Si usas otro usuario de GitHub, actualiza `docsRepositoryBase` en:
