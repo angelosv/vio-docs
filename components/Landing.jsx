@@ -71,13 +71,13 @@ live: true`}
         </div>
         <div className="vio-landing__pillars">
           <div className="vio-landing__pillar">
-            <strong>Engage</strong> — Polls, contests, interactividad en vivo
+            <strong>Engage</strong> — Polls, contests, live interactivity
           </div>
           <div className="vio-landing__pillar">
-            <strong>Monetize</strong> — Shoppable live events, productos, sponsors
+            <strong>Monetize</strong> — Shoppable live events, products, sponsors
           </div>
           <div className="vio-landing__pillar">
-            <strong>Broadcast</strong> — Integración nativa para broadcasting de live events
+            <strong>Broadcast</strong> — Native integration for live event broadcasting
           </div>
         </div>
 

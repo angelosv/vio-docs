@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "predev": "node scripts/fetch-openapi.js",
     "dev": "next dev",
+    "prebuild": "node scripts/fetch-openapi.js",
     "build": "next build",
     "start": "next start"
   },
@@ -12,6 +14,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@scalar/api-reference-react": "^0.8.62",
     "next": "^16.1.6",
     "nextra": "^4.6.1",
     "nextra-theme-docs": "^4.6.1",

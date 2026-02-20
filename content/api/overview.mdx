@@ -1,0 +1,229 @@
+# API Overview
+
+Endpoints grouped by domain. All examples use `https://api.vio.live`; replace with `http://localhost:5000` for local development.
+
+---
+
+## Admin API (Bearer auth)
+
+Endpoints under `/v1/*` for managing broadcasts, polls, and contests. Require JWT Bearer token.
+
+### Broadcasts
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/broadcasts` | List broadcasts (filter by `status`, `campaignId`) |
+| POST | `/v1/broadcasts` | Create broadcast |
+| GET | `/v1/broadcasts/:broadcastId` | Get broadcast |
+| PATCH | `/v1/broadcasts/:broadcastId` | Update broadcast |
+| DELETE | `/v1/broadcasts/:broadcastId` | Delete broadcast |
+| GET | `/v1/campaigns/:campaignId/broadcasts` | List broadcasts for campaign |
+
+### Example: Create broadcast
+
+```bash
+curl -X POST "https://api.vio.live/v1/broadcasts" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "broadcastName": "Champions League Final",
+    "campaignId": 1,
+    "channelId": 1,
+    "startTime": "2026-03-01T20:00:00Z",
+    "endTime": "2026-03-01T22:00:00Z"
+  }'
+```
+
+### Polls
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/broadcasts/:broadcastId/polls` | List polls for broadcast |
+| POST | `/v1/broadcasts/:broadcastId/polls` | Create poll |
+| GET | `/v1/polls/:pollId` | Get poll |
+| PATCH | `/v1/polls/:pollId` | Update poll |
+| DELETE | `/v1/polls/:pollId` | Delete poll |
+| GET | `/v1/polls/:pollId/results` | Get poll results |
+
+### Contests
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/broadcasts/:broadcastId/contests` | List contests for broadcast |
+| POST | `/v1/broadcasts/:broadcastId/contests` | Create contest |
+| GET | `/v1/contests/:contestId` | Get contest |
+| PATCH | `/v1/contests/:contestId` | Update contest |
+| DELETE | `/v1/contests/:contestId` | Delete contest |
+| GET | `/v1/contests/:contestId/participations` | List participations |
+
+---
+
+## SDK API (API Key auth)
+
+Endpoints for mobile/web SDKs. Use `apiKey` query param, `X-Api-Key` header, or `X-App-Bundle-ID` for discovery.
+
+### Discovery
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/sdk/campaigns` | Auto-discover campaigns (bundle ID or apiKey) |
+| GET | `/v1/sdk/config` | Get SDK config for campaign |
+| GET | `/v1/campaigns/:campaignId/config` | Full campaign config (components, broadcasts) |
+
+### Example: Discover campaigns by bundle ID
+
+```bash
+curl "https://api.vio.live/v1/sdk/campaigns" \
+  -H "X-App-Bundle-ID: com.example.yourapp"
+```
+
+### Example: Get campaign config
+
+```bash
+curl "https://api.vio.live/v1/sdk/config?apiKey=YOUR_API_KEY&campaignId=1"
+```
+
+### Engagement (public, rate-limited)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/engagement/config` | Get engagement config |
+| POST | `/v1/engagement/polls/:pollId/vote` | Vote on poll |
+| GET | `/v1/engagement/polls` | List active polls |
+| POST | `/v1/engagement/contests/:contestId/participate` | Participate in contest |
+| GET | `/v1/engagement/contests` | List active contests |
+
+### Example: Vote on poll
+
+```bash
+curl -X POST "https://api.vio.live/v1/engagement/polls/123/vote" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "optionId": 2,
+    "userId": "user_firebase_abc",
+    "broadcastId": "match-2024"
+  }'
+```
+
+### Localization & Offers
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/localization/:language` | Get localized strings |
+| GET | `/v1/offers` | Get offers for SDK |
+
+---
+
+## Dashboard API (Bearer auth)
+
+Endpoints under `/api/*` for users, apps, sponsors, campaigns, and events.
+
+### Status
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/status` | Server status (no auth) |
+
+### Events
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/events` | List recent events |
+| GET | `/api/events/:campaignId` | Get events for campaign |
+| POST | `/api/events/product` | Create product spotlight event |
+| POST | `/api/events/poll` | Create poll event |
+| POST | `/api/events/contest` | Create contest event |
+| POST | `/api/events/:campaignId` | Create generic event |
+
+### Example: Create product event
+
+```bash
+curl -X POST "https://api.vio.live/api/events/product" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "campaignId": 1,
+    "productId": "prod_123",
+    "name": "Premium Vitamin Pack",
+    "price": "29.99",
+    "currency": "USD",
+    "imageUrl": "https://example.com/image.png"
+  }'
+```
+
+### Users & Auth
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/token` | Get Bearer token |
+| GET | `/api/users` | List users |
+| GET | `/api/users/:id` | Get user |
+| GET | `/api/users/reachu/:reachuUserId` | Get user by Reachu ID |
+| POST | `/api/users` | Create user |
+| POST | `/api/users/ensure` | Create or return existing user |
+| PATCH | `/api/users/:id` | Update user |
+
+### Client Apps
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/client-apps` | List client apps |
+| GET | `/api/client-apps/with-stats` | List with campaign stats |
+| GET | `/api/client-apps/:id` | Get client app |
+| POST | `/api/client-apps` | Create client app |
+| PATCH | `/api/client-apps/:id` | Update client app |
+| POST | `/api/client-apps/:id/regenerate-key` | Regenerate API key |
+| DELETE | `/api/client-apps/:id` | Delete client app |
+
+### Sponsors
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/sponsors` | List sponsors |
+| GET | `/api/sponsors/:id` | Get sponsor |
+| POST | `/api/sponsors` | Create sponsor |
+| PATCH | `/api/sponsors/:id` | Update sponsor |
+| DELETE | `/api/sponsors/:id` | Delete sponsor |
+
+### Campaigns
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/campaigns` | List campaigns |
+| GET | `/api/campaigns/:id` | Get campaign |
+| POST | `/api/campaigns` | Create campaign |
+| PATCH | `/api/campaigns/:id` | Update campaign |
+| GET | `/api/campaigns/:id/stats` | Get campaign stats |
+| GET | `/api/campaigns/:id/broadcasts` | List campaign broadcasts |
+| PATCH | `/api/campaigns/:id/toggle-pause` | Pause/unpause campaign |
+| PATCH | `/api/campaigns/:id/engagement-config` | Update engagement config |
+
+### Components & Objects
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/client-apps/:id/components` | List app components |
+| PUT | `/api/client-apps/:id/components/:componentId` | Update component |
+| POST | `/api/objects/upload` | Upload file |
+| PUT | `/api/campaign-logo` | Update campaign logo |
+
+---
+
+## Error responses
+
+| Code | Meaning |
+|------|---------|
+| 400 | Bad request — invalid body or parameters |
+| 401 | Unauthorized — missing or invalid token/API key |
+| 403 | Forbidden — no permission for resource |
+| 404 | Not found — resource does not exist |
+| 429 | Too many requests — rate limit exceeded (engagement endpoints) |
+| 500 | Server error |
+
+Error body format:
+
+```json
+{
+  "message": "Human-readable error message"
+}
+```

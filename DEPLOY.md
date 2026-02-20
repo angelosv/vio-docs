@@ -1,23 +1,23 @@
-# Guía de deploy - vio-docs
+# Deploy Guide - vio-docs
 
-## Pasos restantes
+## Remaining steps
 
-### 1. Crear el repositorio en GitHub
+### 1. Create the repository on GitHub
 
-Si tienes `gh` instalado y autenticado:
+If you have `gh` installed and authenticated:
 
 ```bash
 cd /Users/angelo/vio-docs
-gh auth login   # si el token ha expirado
+gh auth login   # if the token has expired
 gh repo create vio-docs --public --source=. --remote=origin --push
 ```
 
-O manualmente en [github.com/new](https://github.com/new):
-- Nombre: **vio-docs**
-- Visibilidad: Public
-- No inicializar con README (ya existe)
+Or manually at [github.com/new](https://github.com/new):
+- Name: **vio-docs**
+- Visibility: Public
+- Do not initialize with README (one already exists)
 
-Luego:
+Then:
 
 ```bash
 cd /Users/angelo/vio-docs
@@ -25,36 +25,36 @@ git remote add origin https://github.com/angelosv/vio-docs.git
 git push -u origin main
 ```
 
-### 2. Conectar con Vercel
+### 2. Connect with Vercel
 
-1. Ve a [vercel.com](https://vercel.com) e inicia sesión
+1. Go to [vercel.com](https://vercel.com) and sign in
 2. **Add New** → **Project**
-3. Importa el repo `vio-docs` desde GitHub
-4. Framework preset: Next.js (auto-detectado)
+3. Import the `vio-docs` repo from GitHub
+4. Framework preset: Next.js (auto-detected)
 5. Build command: `npm run build`
 6. Deploy
 
-### 3. Configurar dominio docs.vio.live
+### 3. Configure domain docs.vio.live
 
-1. En Vercel: **Project Settings** → **Domains**
-2. Añade `docs.vio.live`
-3. Configura DNS en tu proveedor del dominio `vio.live`:
-   - Tipo: **CNAME**
-   - Nombre: `docs`
-   - Valor: `cname.vercel-dns.com`
+1. In Vercel: **Project Settings** → **Domains**
+2. Add `docs.vio.live`
+3. Configure DNS at your `vio.live` domain provider:
+   - Type: **CNAME**
+   - Name: `docs`
+   - Value: `cname.vercel-dns.com`
 
-### Alternativa: Vercel CLI
+### Alternative: Vercel CLI
 
 ```bash
 npm i -g vercel
 cd /Users/angelo/vio-docs
 vercel
-# Sigue las instrucciones para linkear el proyecto
+# Follow the instructions to link the project
 vercel --prod
 ```
 
 ---
 
-**Nota**: Si usas otro usuario de GitHub, actualiza `docsRepositoryBase` en:
+**Note**: If you use a different GitHub user, update `docsRepositoryBase` in:
 - `theme.config.jsx`
 - `app/layout.jsx`

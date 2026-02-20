@@ -5,7 +5,11 @@ export default {
   },
   swift: 'Swift SDK',
   kotlin: 'Kotlin SDK',
-  api: 'API Reference',
+  api: {
+    title: 'API REST',
+    type: 'page',
+    href: '/api',
+  },
   documentation: {
     title: 'Documentation',
     type: 'page',
