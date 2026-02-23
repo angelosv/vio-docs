@@ -1,0 +1,68 @@
+# Dark/Light Mode
+
+The Vio Swift SDK provides complete dark/light mode support that adapts to iOS system settings.
+
+## Quick Start
+
+Add to your `vio-config.json`:
+
+```json
+{
+  "theme": {
+    "mode": "automatic",
+    "lightColors": {
+      "primary": "#007AFF",
+      "surface": "#FFFFFF",
+      "textPrimary": "#000000"
+    },
+    "darkColors": {
+      "primary": "#0A84FF",
+      "surface": "#1C1C1E",
+      "textPrimary": "#FFFFFF"
+    }
+  }
+}
+```
+
+## Theme Modes
+
+| Mode | Description |
+|------|-------------|
+| `automatic` | Adapts to iOS system setting (recommended) |
+| `light` | Force light theme |
+| `dark` | Force dark theme |
+
+## Programmatic Updates
+
+```swift
+// Switch to dark mode
+VioConfiguration.updateTheme(
+    VioTheme(
+        name: "Dark Override",
+        mode: .dark,
+        lightColors: .vio,
+        darkColors: .vioDark
+    )
+)
+
+// Return to automatic
+VioConfiguration.updateTheme(
+    VioTheme(name: "Auto", mode: .automatic, lightColors: .vio, darkColors: .vioDark)
+)
+```
+
+## Auto-Generated Dark Colors
+
+If you only specify `lightColors`, dark colors are generated automatically:
+
+```json
+{
+  "theme": {
+    "mode": "automatic",
+    "lightColors": {
+      "primary": "#FF6B35",
+      "secondary": "#004E89"
+    }
+  }
+}
+```

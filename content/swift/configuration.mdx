@@ -1,3 +1,145 @@
 # Configuration
 
-Content coming soon...
+Configure the Vio Swift SDK once and use everywhere. All modules (Core, UI, LiveShow) work automatically with the same settings.
+
+## Quick Start
+
+### Option 1: Simple Setup (API Key Only)
+
+```swift
+import VioCore
+
+// In your AppDelegate or App.swift
+VioConfiguration.configure(apiKey: "your-api-key-here")
+
+// Now use anywhere in your app without additional setup
+RProductCard(product: product) // Automatically configured
+RCheckoutOverlay() // Uses global settings
+```
+
+### Option 2: Configuration File (Recommended)
+
+**Step 1:** Add `vio-config.json` to your Xcode project  
+**Step 2:** Ensure it's in your app bundle (Copy Bundle Resources)  
+**Step 3:** Load at app startup:
+
+```swift
+import VioCore
+
+@main
+struct MyApp: App {
+    init() {
+        ConfigurationLoader.loadConfiguration()
+        // Or: try? ConfigurationLoader.loadFromJSON(fileName: "vio-config")
+    }
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+### Option 3: Environment Variables (Theme Switching)
+
+Set in Xcode: **Edit Scheme → Run → Environment Variables**
+
+| Variable | Values | Description |
+|----------|--------|-------------|
+| `VIO_CONFIG_TYPE` | `dark-streaming`, `automatic`, `example` | Selects config file |
+| `VIO_API_KEY` | `your-api-key` | Override API key |
+| `VIO_ENVIRONMENT` | `production`, `sandbox` | Override environment |
+
+## Configuration File (`vio-config.json`)
+
+### Minimal Example
+
+```json
+{
+  "apiKey": "YOUR_VIO_API_KEY_HERE",
+  "environment": "production",
+  "theme": {
+    "name": "My Store Theme",
+    "mode": "automatic",
+    "lightColors": {
+      "primary": "#007AFF",
+      "secondary": "#5856D6"
+    },
+    "darkColors": {
+      "primary": "#0A84FF",
+      "secondary": "#5E5CE6"
+    }
+  },
+  "cart": {
+    "floatingCartPosition": "bottomRight",
+    "floatingCartDisplayMode": "full",
+    "showCartNotifications": true,
+    "enableGuestCheckout": true
+  }
+}
+```
+
+### API Endpoints (Vio)
+
+The SDK connects to these Vio endpoints:
+
+| Environment | GraphQL | Campaigns |
+|-------------|---------|-----------|
+| Development | `https://graph-ql-dev.vio.live` | `https://api-dev.vio.live` |
+| Production | `https://api-ecom.vio.live` | `https://api.vio.live` |
+
+### Theme Modes
+
+| Mode | Description |
+|------|-------------|
+| `automatic` | Follows iOS system light/dark mode |
+| `light` | Force light theme |
+| `dark` | Force dark theme |
+
+### Cart Position Options
+
+```
+topLeft | topCenter | topRight
+centerLeft | centerRight
+bottomLeft | bottomCenter | bottomRight
+```
+
+### Localization
+
+```json
+{
+  "localization": {
+    "defaultLanguage": "en",
+    "fallbackLanguage": "en",
+    "translationsFile": "vio-translations"
+  }
+}
+```
+
+## Runtime Updates
+
+```swift
+// Update theme at runtime
+VioConfiguration.updateTheme(.dark)
+
+// Update cart configuration
+VioConfiguration.updateCartConfiguration(
+    CartConfiguration(
+        floatingCartPosition: .topRight,
+        showCartNotifications: false
+    )
+)
+```
+
+## Troubleshooting
+
+1. **Config not loading:** Ensure `vio-config.json` is in Build Phases → Copy Bundle Resources
+2. **JSON errors:** Validate JSON syntax (no trailing commas, quoted keys)
+3. **Verify:** `print(VioConfiguration.shared.apiKey)` to confirm loading
+
+## Next Steps
+
+- [Complete Setup Example](/swift/examples/complete-setup) — Full copy-paste implementation
+- [Environment Variables](/swift/guides/environment-variables) — CI/CD and theme switching
+- [Dark/Light Mode](/swift/guides/dark-light-mode) — Theming guide

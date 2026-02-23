@@ -1,0 +1,107 @@
+# Complete Setup Example
+
+Copy-paste example to integrate the Vio Swift SDK from scratch.
+
+## 1. Package Dependencies
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/angelosv/VioSwiftSDK.git", from: "1.0.0")
+],
+targets: [
+    .target(
+        name: "YourApp",
+        dependencies: [
+            .product(name: "VioCore", package: "VioSwiftSDK"),
+            .product(name: "VioUI", package: "VioSwiftSDK")
+        ]
+    )
+]
+```
+
+## 2. Configuration File (`vio-config.json`)
+
+Create in your app bundle:
+
+```json
+{
+  "apiKey": "your-vio-api-key-here",
+  "environment": "production",
+  "theme": {
+    "name": "My Store Theme",
+    "mode": "automatic",
+    "lightColors": { "primary": "#007AFF", "secondary": "#5856D6" },
+    "darkColors": { "primary": "#0A84FF", "secondary": "#5E5CE6" }
+  },
+  "cart": {
+    "floatingCartPosition": "bottomRight",
+    "showCartNotifications": true,
+    "enableGuestCheckout": true
+  }
+}
+```
+
+## 3. App Entry Point
+
+```swift
+import SwiftUI
+import VioCore
+import VioUI
+
+@main
+struct MyApp: App {
+    init() {
+        ConfigurationLoader.loadConfiguration()
+    }
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(CartManager())
+        }
+    }
+}
+```
+
+## 4. Main View with Components
+
+```swift
+import SwiftUI
+import VioCore
+import VioUI
+
+struct ContentView: View {
+    @EnvironmentObject var cartManager: CartManager
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    RProductSlider(
+                        title: "Featured",
+                        products: products,
+                        layout: .featured,
+                        onAddToCart: { product in
+                            Task { await cartManager.addProduct(product) }
+                        }
+                    )
+                }
+            }
+            .navigationTitle("My Store")
+        }
+        .overlay { RFloatingCartIndicator().environmentObject(cartManager) }
+        .sheet(isPresented: $cartManager.isCheckoutPresented) {
+            RCheckoutOverlay().environmentObject(cartManager)
+        }
+    }
+}
+```
+
+## Implementation Checklist
+
+- [ ] Add VioSwiftSDK dependency
+- [ ] Create `vio-config.json` with API key
+- [ ] Call `ConfigurationLoader.loadConfiguration()` in App init
+- [ ] Add `CartManager` as environment object
+- [ ] Use `RProductCard`, `RProductSlider`, `RFloatingCartIndicator`, `RCheckoutOverlay`

@@ -1,0 +1,47 @@
+# Environment Variables
+
+Quick theme switching and configuration using environment variables.
+
+## Quick Start
+
+**In Xcode:** Edit Scheme → Run → Environment Variables
+
+| Variable | Values | Description |
+|----------|--------|-------------|
+| `VIO_CONFIG_TYPE` | `dark-streaming`, `automatic`, `example` | Selects configuration file |
+| `VIO_API_KEY` | `your-api-key` | Override API key |
+| `VIO_ENVIRONMENT` | `production`, `sandbox` | Override environment |
+
+## Theme Options
+
+### Dark Streaming Theme
+
+```bash
+VIO_CONFIG_TYPE=dark-streaming
+```
+
+- **Background**: Pure black (#000000)
+- **Primary**: Vibrant blue (#0066FF)
+- **Ideal for**: Streaming apps, gaming, media platforms
+
+### Automatic Theme
+
+```bash
+VIO_CONFIG_TYPE=automatic
+```
+
+- Follows iOS system light/dark mode
+- **Ideal for**: General apps, ecommerce
+
+## CI/CD Usage
+
+```swift
+// Load from environment variables
+ConfigurationLoader.loadFromEnvironment()
+```
+
+## Configuration Priority
+
+1. **Environment variable** (`VIO_CONFIG_TYPE`) — Highest priority
+2. **Config files**: `vio-config-{type}.json`, `vio-config.json`
+3. **Fallback** to default configuration
