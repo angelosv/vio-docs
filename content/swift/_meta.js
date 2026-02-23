@@ -6,9 +6,7 @@ export default {
   'core-concepts': 'Core Concepts',
   components: 'Components',
   guides: 'Guides',
-  'guides/environment-variables': 'Environment Variables',
-  'guides/dark-light-mode': 'Dark/Light Mode',
-  'examples/complete-setup': 'Complete Setup Example',
+  examples: 'Examples',
   'api-reference': 'API Reference',
   changelog: 'Changelog',
 }
