@@ -78,6 +78,22 @@ VioProductStore(
 
 ## Cart & Checkout Components
 
+### VioMarketSelector
+
+A component that allows the user to select their shipping market.
+
+```kotlin
+import io.reachu.VioUI.Components.compose.market.VioMarketSelector
+
+VioMarketSelector(
+    cartManager = cartManager,
+    onSelected = { market ->
+        // Handle market selection
+    },
+    imageLoader = imageLoader
+)
+```
+
 ### VioFloatingCartIndicator
 
 A floating button showing the current number of items in the cart.
@@ -92,16 +108,18 @@ VioFloatingCartIndicator(
 )
 ```
 
-### VioCheckoutOverlayController
+### VioCheckoutOverlay
 
 Manages the full checkout flow as an overlay/modal.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioCheckoutOverlayController
+import io.reachu.VioUI.VioCheckoutOverlay
 
-VioCheckoutOverlayController(
-    isVisible = showCheckout,
-    onDismiss = { showCheckout = false }
+VioCheckoutOverlay(
+    cartManager = cartManager,
+    onBack = { showCheckout = false },
+    initialStep = null,
+    isCampaignGated = false
 )
 ```
 
@@ -121,14 +139,14 @@ VioProductDetailOverlay(
 
 ## Promotional Components
 
-### VioOfferBanner
+### VioOfferBannerDynamic
 
-Displays a promotional offer banner with countdown timer or message.
+Displays a promotional offer banner with countdown timer or message dynamically.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioOfferBanner
+import io.reachu.VioUI.Components.compose.offers.VioOfferBannerDynamic
 
-VioOfferBanner(
+VioOfferBannerDynamic(
     channelId = "your-channel-id"
 )
 ```
@@ -142,9 +160,9 @@ These components are part of the `VioEngagementUI` module.
 Displays interactive polls during a live broadcast.
 
 ```kotlin
-import io.reachu.VioEngagementUI.REngagementPollCard
+import io.reachu.VioEngagementUI.Components.VioEngagementPollCard
 
-REngagementPollCard(
+VioEngagementPollCard(
     poll = currentPoll,
     onVote = { optionId ->
         // Submit vote
@@ -157,9 +175,28 @@ REngagementPollCard(
 Displays contest cards during a live event.
 
 ```kotlin
-import io.reachu.VioEngagementUI.REngagementContestCard
+import io.reachu.VioEngagementUI.Components.VioEngagementContestCard
 
-REngagementContestCard(
+VioEngagementContestCard(
     contest = currentContest
+)
+```
+
+### Product Cards (Engagement)
+
+Displays product interaction cards during a live broadcast.
+
+```kotlin
+import io.reachu.VioEngagementUI.Components.VioEngagementProductCard
+import io.reachu.VioEngagementUI.Components.VioEngagementProductGridCard
+
+VioEngagementProductCard(
+    product = currentProduct,
+    onClick = { /* Handle click */ }
+)
+
+VioEngagementProductGridCard(
+    product = currentProduct,
+    onClick = { /* Handle click */ }
 )
 ```
