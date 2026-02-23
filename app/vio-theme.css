@@ -1,0 +1,39 @@
+/**
+ * Vio Design System - Color Variables
+ * From designer reference. Adjust these to update colors across the docs.
+ */
+:root {
+  /* Palette - Image 1 */
+  --vio-charcoal: #2B3D37;
+  --vio-teal-deep: #257D71;
+  --vio-aqua: #00FFAA;
+  --vio-cyan: #66DCEB;
+  --vio-white: #FFFFFF;
+  --vio-gray-light: #E2E2E2;
+  --vio-black: #000000;
+
+  /* Logo gradient - Image 2 */
+  --vio-gradient-start: #00E6A8;
+  --vio-gradient-mid: #00A78E;
+  --vio-gradient-end: #004D4D;
+
+  /* Semantic mappings - black base with aqua neon accents */
+  --vio-bg-dark: #0a0a0a;
+  --vio-bg-docs-dark: #0a0a0a;
+  --vio-bg-card-dark: #111111;
+  --vio-primary: var(--vio-aqua);
+  --vio-primary-muted: var(--vio-teal-deep);
+  --vio-accent: var(--vio-cyan);
+  --vio-text-on-dark: var(--vio-white);
+  --vio-text-muted-dark: #9ca3af;
+  --vio-text-on-light: var(--vio-charcoal);
+  --vio-text-muted-light: #6b7280;
+  --vio-border-dark: rgba(255, 255, 255, 0.1);
+  --vio-border-light: rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode overrides */
+html.light {
+  --vio-bg-docs-light: #ffffff;
+  --vio-bg-card-light: #ffffff;
+}

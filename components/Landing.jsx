@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { SiSwift, SiKotlin } from 'react-icons/si'
 import { FiGrid, FiPackage, FiSettings, FiVideo } from 'react-icons/fi'
+import { VioLogo } from './VioLogo'
 
 export function Landing() {
   return (
@@ -15,7 +16,9 @@ export function Landing() {
       <section className="vio-landing__hero">
         <span className="vio-landing__badge">Engage • Monetize • Broadcast</span>
         <h1 className="vio-landing__title">
-          <span className="vio-landing__title-accent">VIO</span>
+          <span className="vio-landing__title-accent vio-landing__title-logo">
+            <VioLogo height={64} />
+          </span>
         </h1>
         <p className="vio-landing__subtitle">
           Engage your viewers in new ways. Monetize your live events. Native SDKs for iOS and Android.

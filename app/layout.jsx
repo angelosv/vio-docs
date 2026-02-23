@@ -1,7 +1,9 @@
 import { Footer, Layout, Navbar } from 'nextra-theme-docs'
 import { Head } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
+import { VioLogo } from '../components/VioLogo'
 import 'nextra-theme-docs/style.css'
+import './vio-theme.css'
 import './landing.css'
 
 export const metadata = {
@@ -12,12 +14,7 @@ export const metadata = {
 const navbar = (
   <Navbar
     align="left"
-    logo={
-      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '1.125rem' }}>
-        <img src="/logo.svg" alt="Vio" style={{ height: 32, width: 32 }} />
-        VIO
-      </span>
-    }
+    logo={<VioLogo height={24} />}
     logoLink="/"
     projectLink="https://github.com/angelosv/vio-docs"
     projectIcon={
@@ -51,12 +48,12 @@ export default async function RootLayout({ children }) {
     >
       <Head
         backgroundColor={{
-          dark: 'rgb(17,17,17)',
-          light: 'rgb(250,250,250)',
+          dark: 'rgb(10,10,10)',
+          light: 'rgb(255,255,255)',
         }}
         color={{
-          hue: { dark: 270, light: 270 },
-          saturation: { dark: 70, light: 80 },
+          hue: { dark: 165, light: 165 },
+          saturation: { dark: 100, light: 100 },
         }}
       />
       <body suppressHydrationWarning>

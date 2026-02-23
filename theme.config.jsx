@@ -1,8 +1,9 @@
+import { VioLogo } from './components/VioLogo'
+
 export default {
   logo: (
     <span className="flex items-center gap-2">
-      <img src="/logo.svg" alt="Vio" className="h-8 w-8" />
-      <span>Vio Docs</span>
+      <VioLogo height={24} />
     </span>
   ),
   project: {
