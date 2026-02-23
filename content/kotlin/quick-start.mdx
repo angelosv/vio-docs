@@ -1,0 +1,69 @@
+# Quick Start
+
+Get the Vio Kotlin SDK running in your Android app in under 5 minutes.
+
+## 1. Add the Dependency
+
+In your app-level `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("io.github.reachudevteam:reachu-kotlin-sdk:1.0.1")
+}
+```
+
+## 2. Configure the SDK
+
+In your `Application` class, initialize the SDK before any UI is displayed:
+
+```kotlin
+import android.app.Application
+import io.reachu.VioCore.configuration.VioConfiguration
+
+class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        // Configure with your API credentials
+        VioConfiguration.configure(
+            apiKey = "your-api-key",
+            environment = VioEnvironment.PRODUCTION
+        )
+    }
+}
+```
+
+Register it in your `AndroidManifest.xml`:
+
+```xml
+<application
+    android:name=".MyApp"
+    ...>
+```
+
+## 3. Add a Product Card
+
+```kotlin
+import androidx.compose.runtime.Composable
+import io.reachu.VioUI.Components.VioProductCarousel
+
+@Composable
+fun ProductListScreen() {
+    VioProductCarousel(
+        channelId = "your-channel-id",
+        onProductClick = { product ->
+            // Handle product selection
+        }
+    )
+}
+```
+
+## 4. Run Your App
+
+Build and run. You should see the product carousel rendered with Vio styling.
+
+## What's Next?
+
+- [Installation](/kotlin/installation) — Detailed Gradle setup and permissions
+- [Configuration](/kotlin/configuration) — Environment, themes, and options
+- [Core Concepts](/kotlin/core-concepts) — Understand the SDK architecture

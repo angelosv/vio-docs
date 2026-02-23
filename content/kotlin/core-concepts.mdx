@@ -1,0 +1,96 @@
+# Core Concepts
+
+Understand the architecture of the Vio Kotlin SDK before diving into advanced usage.
+
+## Modular Design
+
+The SDK is organized into independent modules that you can mix and match based on your app's needs:
+
+```
+VioCore          ← Required: configuration, models, base managers
+VioUI            ← Compose UI components (products, checkout, cart)
+VioEngagementSystem  ← Polls, contests logic and repositories
+VioEngagementUI  ← Engagement Compose overlays and cards
+VioLiveShow      ← Live streaming models and managers
+VioLiveUI        ← Live streaming Compose components
+```
+
+## Configuration Singleton
+
+`VioConfiguration` is a singleton that holds the entire SDK state using Kotlin's `StateFlow`. Call `configure()` once — typically in `Application.onCreate()` — before rendering any Vio component.
+
+```kotlin
+// Initialize once
+VioConfiguration.configure(apiKey = "...", environment = VioEnvironment.PRODUCTION)
+
+// Read state reactively
+val config = VioConfiguration.shared.state.value
+```
+
+## Reactive State with StateFlow
+
+The SDK uses Kotlin's `StateFlow` for reactive state management, making it easy to observe changes in your Compose UI:
+
+```kotlin
+val configState by VioConfiguration.shared.state.collectAsState()
+```
+
+This means SDK configuration changes (e.g. theme, market availability) automatically update all rendered components.
+
+## Coroutines
+
+All network operations are `suspend` functions and should be called from a `CoroutineScope` or a `ViewModel`:
+
+```kotlin
+class ProductViewModel : ViewModel() {
+    fun loadProducts(channelId: String) {
+        viewModelScope.launch {
+            // SDK calls are suspend functions
+            val products = productRepository.getProducts(channelId)
+        }
+    }
+}
+```
+
+## Environments
+
+The SDK supports three environments controlled by `VioEnvironment`:
+
+| Environment | Base URL |
+|-------------|----------|
+| `DEVELOPMENT` | `https://graph-ql-dev.vio.live` |
+| `SANDBOX` | `https://graph-ql-dev.vio.live` |
+| `PRODUCTION` | `https://graph-ql.vio.live` |
+
+The `graphQLUrl` is automatically derived from the base URL.
+
+## Error Handling
+
+Configuration errors are thrown as `ConfigurationError` sealed class instances:
+
+```kotlin
+sealed class ConfigurationError : IllegalStateException {
+    object NotConfigured  // SDK not initialized
+    object MissingApiKey  // apiKey is blank
+    object InvalidEnvironment
+    object InvalidTheme
+    class FileNotFound(val fileName: String)
+    object InvalidJSON
+    object InvalidPlist
+}
+```
+
+## Market Availability
+
+The SDK supports multi-market scenarios. You can restrict access based on the user's country:
+
+```kotlin
+// Call after fetching available markets from your backend
+VioConfiguration.setMarketAvailability(
+    available = true,
+    userCountryCode = "NO",
+    availableMarkets = availableMarketsFromApi
+)
+```
+
+The language is automatically resolved from the country code (e.g. `NO` → `no`, `DE` → `de`).

@@ -1,0 +1,156 @@
+# Configuration
+
+Customize the Vio Kotlin SDK behaviour through `VioConfiguration`.
+
+## Basic Setup
+
+```kotlin
+import io.reachu.VioCore.configuration.VioConfiguration
+import io.reachu.VioCore.configuration.VioEnvironment
+
+VioConfiguration.configure(
+    apiKey = "your-api-key",
+    environment = VioEnvironment.PRODUCTION
+)
+```
+
+## Environments
+
+| Environment | Description |
+|-------------|-------------|
+| `DEVELOPMENT` | Local / dev server |
+| `SANDBOX` | Staging / testing environment |
+| `PRODUCTION` | Live production API |
+
+## Theme
+
+Customize the visual appearance of all Vio components:
+
+```kotlin
+import io.reachu.VioCore.configuration.VioTheme
+
+val myTheme = VioTheme(
+    name = "MyBrand",
+    primaryColor = "#FF6B35",
+    secondaryColor = "#004E89",
+    backgroundColor = "#FFFFFF",
+    textColor = "#1A1A1A"
+)
+
+VioConfiguration.configure(
+    apiKey = "your-api-key",
+    theme = myTheme
+)
+```
+
+Update the theme at runtime:
+
+```kotlin
+VioConfiguration.updateTheme(myTheme)
+```
+
+## Cart Configuration
+
+Control cart behavior and supported payment methods:
+
+```kotlin
+import io.reachu.VioCore.configuration.CartConfiguration
+import io.reachu.VioCore.configuration.KlarnaMode
+
+VioConfiguration.configure(
+    apiKey = "your-api-key",
+    cartConfig = CartConfiguration(
+        enableGuestCheckout = true,
+        requirePhoneNumber = true,
+        maxQuantityPerItem = 10,
+        defaultShippingCountry = "US",
+        supportedPaymentMethods = listOf("stripe", "klarna"),
+        klarnaMode = KlarnaMode.WEB
+    )
+)
+```
+
+## UI Configuration
+
+Control component layout and behaviour:
+
+```kotlin
+import io.reachu.VioCore.configuration.UIConfiguration
+import io.reachu.VioCore.configuration.ProductCardVariant
+
+VioConfiguration.configure(
+    apiKey = "your-api-key",
+    uiConfig = UIConfiguration(
+        defaultProductCardVariant = ProductCardVariant.GRID,
+        enableProductCardAnimations = true,
+        showProductBrands = true,
+        showDiscountBadge = true
+    )
+)
+```
+
+## Network Configuration
+
+Tune request timeouts, caching, and logging:
+
+```kotlin
+import io.reachu.VioCore.configuration.NetworkConfiguration
+import kotlin.time.Duration.Companion.seconds
+
+VioConfiguration.configure(
+    apiKey = "your-api-key",
+    networkConfig = NetworkConfiguration(
+        timeout = 30.seconds,
+        retryAttempts = 3,
+        enableCaching = true,
+        enableLogging = false
+    )
+)
+```
+
+## LiveShow Configuration
+
+Configure live event streaming settings:
+
+```kotlin
+import io.reachu.VioCore.configuration.LiveShowConfiguration
+import io.reachu.VioCore.configuration.VideoQuality
+
+VioConfiguration.configure(
+    apiKey = "your-api-key",
+    liveShowConfig = LiveShowConfiguration(
+        autoJoinChat = true,
+        enableShoppingDuringStream = true,
+        showProductOverlays = true,
+        videoQuality = VideoQuality.AUTO,
+        enablePictureInPicture = true
+    )
+)
+```
+
+## Market Availability
+
+Restrict the SDK to specific markets:
+
+```kotlin
+// Set available market for the current user
+VioConfiguration.setMarketAvailability(
+    available = true,
+    userCountryCode = "NO",
+    availableMarkets = listOf(/* markets from your backend */)
+)
+```
+
+## Full Configuration Example
+
+```kotlin
+VioConfiguration.configure(
+    apiKey = "your-api-key",
+    environment = VioEnvironment.PRODUCTION,
+    theme = VioTheme(name = "MyBrand", primaryColor = "#FF6B35"),
+    cartConfig = CartConfiguration(defaultShippingCountry = "NO"),
+    uiConfig = UIConfiguration(showDiscountBadge = true),
+    networkConfig = NetworkConfiguration(enableLogging = true),
+    liveShowConfig = LiveShowConfiguration(videoQuality = VideoQuality.HD)
+)
+```

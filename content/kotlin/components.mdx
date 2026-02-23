@@ -1,0 +1,165 @@
+# Components
+
+The `VioUI` module provides a set of ready-to-use Jetpack Compose components for displaying products, managing the cart, and handling checkout.
+
+## Product Components
+
+### VioProductCard
+
+A single product card that displays a product image, name, price and an add-to-cart button.
+
+```kotlin
+import io.reachu.VioUI.Components.VioProductCard
+
+VioProductCard(
+    product = product,
+    onAddToCart = { selectedProduct ->
+        // Handle add to cart
+    },
+    onProductClick = { selectedProduct ->
+        // Open product detail
+    }
+)
+```
+
+### VioProductCarousel
+
+A horizontally scrollable carousel of product cards. Fetches products automatically from a channel.
+
+```kotlin
+import io.reachu.VioUI.Components.VioProductCarousel
+
+VioProductCarousel(
+    channelId = "your-channel-id",
+    onProductClick = { product ->
+        // Handle product tap
+    }
+)
+```
+
+### VioProductSlider
+
+A horizontal product slider with optional pagination indicators.
+
+```kotlin
+import io.reachu.VioUI.Components.VioProductSlider
+
+VioProductSlider(
+    channelId = "your-channel-id",
+    showPagination = true
+)
+```
+
+### VioProductBanner
+
+A full-width product banner component, ideal for hero sections.
+
+```kotlin
+import io.reachu.VioUI.Components.VioProductBanner
+
+VioProductBanner(
+    channelId = "your-channel-id",
+    isCampaignGated = false,
+    showSponsor = true
+)
+```
+
+### VioProductStore
+
+A full product grid store view with cart support.
+
+```kotlin
+import io.reachu.VioUI.Components.VioProductStore
+
+VioProductStore(
+    channelId = "your-channel-id"
+)
+```
+
+## Cart & Checkout Components
+
+### VioFloatingCartIndicator
+
+A floating button showing the current number of items in the cart.
+
+```kotlin
+import io.reachu.VioUI.Components.VioFloatingCartIndicator
+
+VioFloatingCartIndicator(
+    onClick = {
+        // Open checkout overlay
+    }
+)
+```
+
+### VioCheckoutOverlayController
+
+Manages the full checkout flow as an overlay/modal.
+
+```kotlin
+import io.reachu.VioUI.Components.VioCheckoutOverlayController
+
+VioCheckoutOverlayController(
+    isVisible = showCheckout,
+    onDismiss = { showCheckout = false }
+)
+```
+
+### VioProductDetailOverlay
+
+Displays full product details (images, description, variants) in a bottom sheet overlay.
+
+```kotlin
+import io.reachu.VioUI.Components.VioProductDetailOverlay
+
+VioProductDetailOverlay(
+    product = selectedProduct,
+    isVisible = showDetail,
+    onDismiss = { showDetail = false }
+)
+```
+
+## Promotional Components
+
+### VioOfferBanner
+
+Displays a promotional offer banner with countdown timer or message.
+
+```kotlin
+import io.reachu.VioUI.Components.VioOfferBanner
+
+VioOfferBanner(
+    channelId = "your-channel-id"
+)
+```
+
+## Engagement Components
+
+These components are part of the `VioEngagementUI` module.
+
+### Poll Overlay
+
+Displays interactive polls during a live broadcast.
+
+```kotlin
+import io.reachu.VioEngagementUI.REngagementPollCard
+
+REngagementPollCard(
+    poll = currentPoll,
+    onVote = { optionId ->
+        // Submit vote
+    }
+)
+```
+
+### Contest Overlay
+
+Displays contest cards during a live event.
+
+```kotlin
+import io.reachu.VioEngagementUI.REngagementContestCard
+
+REngagementContestCard(
+    contest = currentContest
+)
+```
