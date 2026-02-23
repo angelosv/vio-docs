@@ -15,6 +15,7 @@
   "description": "",
   "dependencies": {
     "@scalar/api-reference-react": "^0.8.62",
+    "lucide-react": "^0.575.0",
     "next": "^16.1.6",
     "nextra": "^4.6.1",
     "nextra-theme-docs": "^4.6.1",

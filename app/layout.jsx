@@ -8,7 +8,7 @@ import './landing.css'
 
 export const metadata = {
   title: 'Vio Documentation',
-  description: 'Documentation for Vio SDK - Swift, Kotlin, and API',
+  description: 'Vio SDK documentation — Swift, Kotlin, and REST API for engagement and monetization in streaming apps.',
 }
 
 const navbar = (
