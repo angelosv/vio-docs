@@ -33,3 +33,7 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Internal docs (not for main)
+DEPLOY.md
+VIOLIVE_COPY.md
