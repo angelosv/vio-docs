@@ -1,3 +1,222 @@
 # API Reference
 
-Content coming soon...
+Reference for VioCore models, VioUI services, and configuration.
+
+## VioCore
+
+The `VioCore` module provides configuration, models, and base functionality.
+
+### VioConfiguration
+
+Global configuration. Load via `ConfigurationLoader.loadConfiguration()` or configure programmatically.
+
+```swift
+import VioCore
+
+// Access shared config
+let config = VioConfiguration.shared
+let apiKey = config.apiKey
+let theme = config.theme
+
+// Runtime updates
+VioConfiguration.updateTheme(.dark)
+VioConfiguration.updateCartConfiguration(CartConfiguration(...))
+VioConfiguration.setMarketAvailable(true, userCountryCode: "US", availableMarkets: ["US", "CA"])
+```
+
+### ConfigurationLoader
+
+Load configuration from `vio-config.json` or environment variables.
+
+```swift
+import VioCore
+
+// Load from default vio-config.json
+ConfigurationLoader.loadConfiguration()
+
+// Load with specific country (for testing)
+ConfigurationLoader.loadConfiguration(userCountryCode: "DE")
+
+// Load from custom file
+try? ConfigurationLoader.loadFromJSON(fileName: "my-config")
+```
+
+## Core Models
+
+### Product
+
+```swift
+public struct Product: Identifiable, Codable {
+    public let id: String
+    public let title: String
+    public let brand: String?
+    public let description: String?
+    public let sku: String
+    public let quantity: Int?
+    public let price: Price
+    public let images: [ProductImage]
+    public let variants: [Variant]
+}
+```
+
+### Price
+
+```swift
+public struct Price: Codable {
+    public let amount: Float
+    public let currencyCode: String
+    public let compareAt: Float?
+    public var displayAmount: String { get }
+    public var displayCompareAtAmount: String? { get }
+}
+```
+
+### Cart
+
+```swift
+public struct Cart: Identifiable, Codable {
+    public let id: String
+    public let customerSessionId: String
+    public let currency: String
+    public let lineItems: [LineItem]
+    public let totals: CartTotals
+}
+```
+
+## ProductService (VioUI)
+
+Shared singleton for loading products. Used internally by SDK components.
+
+```swift
+import VioUI
+
+// Load single product
+let product = try await ProductService.shared.loadProduct(
+    productId: "123",
+    currency: "USD",
+    country: "US"
+)
+
+// Load multiple products
+let products = try await ProductService.shared.loadProducts(
+    productIds: [123, 456, 789],
+    currency: "USD",
+    country: "US"
+)
+
+// Load all products (pass nil)
+let allProducts = try await ProductService.shared.loadProducts(
+    productIds: nil,
+    currency: "USD",
+    country: "US"
+)
+
+// Clear cache
+ProductService.shared.clearCache()
+```
+
+### ProductServiceError
+
+```swift
+public enum ProductServiceError: LocalizedError {
+    case invalidConfiguration(String)
+    case invalidProductId(String)
+    case productNotFound(Int)
+    case sdkError(SdkException)
+    case networkError(Error)
+}
+```
+
+## CartManager (VioUI)
+
+Global cart state. Use with `@StateObject` and `@EnvironmentObject`.
+
+```swift
+import VioUI
+
+@StateObject private var cartManager = CartManager()
+
+// Add product
+await cartManager.addProduct(product)
+
+// Present checkout
+cartManager.isCheckoutPresented = true
+
+// Cart state
+let cart = cartManager.cart
+let itemCount = cart?.lineItems.count ?? 0
+```
+
+## CheckoutDraft (VioUI)
+
+Checkout state for address normalization and payment flow.
+
+```swift
+import VioUI
+
+@StateObject private var checkoutDraft = CheckoutDraft()
+
+// Use with VioCheckoutOverlay
+VioCheckoutOverlay()
+    .environmentObject(cartManager)
+    .environmentObject(checkoutDraft)
+```
+
+## Design System (VioDesignSystem)
+
+Design tokens available when using VioUI:
+
+```swift
+// Typography
+VioTypography.largeTitle
+VioTypography.title
+VioTypography.body
+VioTypography.caption
+
+// Colors
+VioColors.primary
+VioColors.secondary
+VioColors.surface
+VioColors.text
+VioColors.textSecondary
+
+// Spacing
+VioSpacing.xs
+VioSpacing.sm
+VioSpacing.md
+VioSpacing.lg
+VioSpacing.xl
+```
+
+## Environment Endpoints
+
+| Environment | GraphQL | Campaigns |
+|-------------|---------|-----------|
+| Development | `https://graph-ql-dev.vio.live` | `https://api-dev.vio.live` |
+| Production | `https://api-ecom.vio.live` | `https://api.vio.live` |
+
+## Error Handling
+
+Handle errors with `do/catch`:
+
+```swift
+do {
+    let product = try await ProductService.shared.loadProduct(
+        productId: "123",
+        currency: "USD",
+        country: "US"
+    )
+} catch ProductServiceError.productNotFound(let id) {
+    print("Product not found: \(id)")
+} catch ProductServiceError.invalidConfiguration(let message) {
+    print("Config error: \(message)")
+} catch {
+    print("Error: \(error.localizedDescription)")
+}
+```
+
+## Next Steps
+
+- [Components](/swift/components) — SwiftUI component library
+- [Configuration](/swift/configuration) — Full config options
+- [Complete Setup](/swift/examples/complete-setup) — Full integration example

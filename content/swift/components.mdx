@@ -1,3 +1,232 @@
 # Components
 
-Content coming soon...
+The Vio Swift SDK provides SwiftUI components for ecommerce and live streaming. Import `VioUI` for product displays, cart, and checkout. Import `VioCastingUI` for casting-specific components (polls, contests, product spotlight during live events).
+
+## Product Components
+
+### VioProductCard
+
+Flexible product card with multiple layout variants: grid, list, hero, minimal.
+
+```swift
+import SwiftUI
+import VioUI
+import VioCore
+
+VioProductCard(
+    product: product,
+    variant: .grid,
+    onTap: { showProductDetail(product) },
+    onAddToCart: { addToCart(product) }
+)
+```
+
+**Variants:** `.grid`, `.list`, `.hero`, `.minimal`
+
+### VioProductSlider
+
+Horizontal scrolling product gallery with multiple layouts.
+
+```swift
+VioProductSlider(
+    title: "Featured Products",
+    products: products,
+    layout: .featured,
+    showSeeAll: true,
+    onProductTap: { product in showProductDetail(product) },
+    onAddToCart: { product in addToCart(product) }
+)
+```
+
+**Layouts:** `.featured`, `.cards`, `.compact`, `.banner`, `.minimal`, `.hero`
+
+### VioProductCarousel
+
+Carousel-style product display for horizontal scrolling.
+
+```swift
+VioProductCarousel(
+    products: products,
+    onProductTap: { product in showProductDetail(product) },
+    onAddToCart: { product in addToCart(product) }
+)
+```
+
+### VioProductDetailOverlay
+
+Full-screen product detail modal with image gallery and add-to-cart.
+
+```swift
+VioProductDetailOverlay(
+    product: product,
+    isPresented: $showDetail,
+    onAddToCart: { addToCart(product) }
+)
+```
+
+### VioProductStore
+
+Complete product store view with product grid and cart integration.
+
+```swift
+VioProductStore(
+    products: products,
+    onProductTap: { product in showProductDetail(product) }
+)
+.environmentObject(cartManager)
+```
+
+### VioProductBanner
+
+Banner-style product display for promotions.
+
+```swift
+VioProductBanner(
+    product: product,
+    onTap: { showProductDetail(product) },
+    onAddToCart: { addToCart(product) }
+)
+```
+
+### VioProductSpotlight
+
+Spotlight-style product display for featured items.
+
+```swift
+VioProductSpotlight(
+    product: product,
+    onTap: { showProductDetail(product) },
+    onAddToCart: { addToCart(product) }
+)
+```
+
+## Cart & Checkout Components
+
+### CartManager
+
+Global cart state. Create once and inject via `@EnvironmentObject`.
+
+```swift
+@StateObject private var cartManager = CartManager()
+
+// In your view hierarchy
+.environmentObject(cartManager)
+```
+
+### VioFloatingCartIndicator
+
+Persistent cart indicator overlay. Shows item count and opens checkout on tap.
+
+```swift
+.overlay {
+    VioFloatingCartIndicator()
+        .environmentObject(cartManager)
+}
+```
+
+### VioCheckoutOverlay
+
+Complete checkout flow as modal sheet.
+
+```swift
+.sheet(isPresented: $cartManager.isCheckoutPresented) {
+    VioCheckoutOverlay()
+        .environmentObject(cartManager)
+        .environmentObject(checkoutDraft)
+}
+```
+
+### CheckoutDraft
+
+Checkout state management. Use with `VioCheckoutOverlay` for address normalization.
+
+```swift
+@StateObject private var checkoutDraft = CheckoutDraft()
+.environmentObject(checkoutDraft)
+```
+
+## Campaign & Offer Components
+
+### VioOfferBanner
+
+Dynamic offer banner with config from backend. Supports WebSocket for real-time updates.
+
+```swift
+VioOfferBannerDynamic()
+```
+
+Or with explicit config:
+
+```swift
+if let bannerConfig = componentManager.activeBanner {
+    VioOfferBanner(config: bannerConfig)
+}
+```
+
+### VioSponsorBadge
+
+Sponsor/campaign badge.
+
+```swift
+VioSponsorBadge(config: sponsorConfig)
+```
+
+## Market Components
+
+### VioMarketSelector
+
+Market/country selector for multi-market apps.
+
+```swift
+VioMarketSelector(
+    selectedMarket: $selectedMarket,
+    onMarketChange: { newMarket in updateMarket(newMarket) }
+)
+```
+
+## VioCastingUI Components (Live Events)
+
+For live streaming apps, import `VioCastingUI` for casting-specific components:
+
+- **VioCastingProductCardWrapper** — Product card wrapper for live event context
+- **VioCastingProductModal** — Product modal for live event checkout
+- **VioCastingContestCardWrapper** — Contest card for live events
+- **VioCastingContestModal** — Contest participation modal
+- **PredictionPollCard** — Prediction poll UI
+- **TimelinePollCard** — Timeline poll UI
+- **LineupCard** — Match lineup display
+- **StatPreviewCard** — Statistics preview
+
+```swift
+import VioCastingUI
+
+VioCastingProductCardWrapper(
+    event: castingEvent,
+    configId: configId,
+    onProductTap: { ... }
+)
+```
+
+## Design System
+
+When using VioUI, you can use design tokens:
+
+```swift
+import VioCore
+
+Text("Title")
+    .font(VioTypography.largeTitle)
+    .foregroundColor(VioColors.primary)
+
+VStack(spacing: VioSpacing.lg) {
+    VioButton(title: "Add to Cart", style: .primary, size: .large) {
+        addToCart(product)
+    }
+}
+```
+
+## Next Steps
+
+- [Complete Setup Example](/swift/examples/complete-setup) — Full integration
+- [API Reference](/swift/api-reference) — Models and services
+- [Configuration](/swift/configuration) — Theme and cart options

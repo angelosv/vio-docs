@@ -51,6 +51,9 @@ import VioUI
 
 @main
 struct MyApp: App {
+    @StateObject private var cartManager = CartManager()
+    @StateObject private var checkoutDraft = CheckoutDraft()
+    
     init() {
         ConfigurationLoader.loadConfiguration()
     }
@@ -58,7 +61,8 @@ struct MyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(CartManager())
+                .environmentObject(cartManager)
+                .environmentObject(checkoutDraft)
         }
     }
 }
@@ -73,12 +77,14 @@ import VioUI
 
 struct ContentView: View {
     @EnvironmentObject var cartManager: CartManager
+    @EnvironmentObject var checkoutDraft: CheckoutDraft
+    @State private var products: [Product] = []
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
-                    RProductSlider(
+                    VioProductSlider(
                         title: "Featured",
                         products: products,
                         layout: .featured,
@@ -90,9 +96,22 @@ struct ContentView: View {
             }
             .navigationTitle("My Store")
         }
-        .overlay { RFloatingCartIndicator().environmentObject(cartManager) }
+        .task {
+            do {
+                products = try await ProductService.shared.loadProducts(
+                    productIds: nil,
+                    currency: "USD",
+                    country: "US"
+                )
+            } catch {
+                print("Failed to load products: \(error)")
+            }
+        }
+        .overlay { VioFloatingCartIndicator().environmentObject(cartManager) }
         .sheet(isPresented: $cartManager.isCheckoutPresented) {
-            RCheckoutOverlay().environmentObject(cartManager)
+            VioCheckoutOverlay()
+                .environmentObject(cartManager)
+                .environmentObject(checkoutDraft)
         }
     }
 }
@@ -104,4 +123,4 @@ struct ContentView: View {
 - [ ] Create `vio-config.json` with API key
 - [ ] Call `ConfigurationLoader.loadConfiguration()` in App init
 - [ ] Add `CartManager` as environment object
-- [ ] Use `RProductCard`, `RProductSlider`, `RFloatingCartIndicator`, `RCheckoutOverlay`
+- [ ] Use `VioProductCard`, `VioProductSlider`, `VioFloatingCartIndicator`, `VioCheckoutOverlay`

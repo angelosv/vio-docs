@@ -1,3 +1,114 @@
 # Core Concepts
 
-Content coming soon...
+The Vio Swift SDK is a modular SDK for **iOS** (iPhone & iPad) to manage **shopping carts, checkouts, discounts, markets, channels and payments** using GraphQL. Built with SwiftUI and designed for scalability and performance.
+
+## Why Swift + SwiftUI?
+
+- **Native iOS Performance** — Compiled to native code optimized for iPhone and iPad
+- **Modular Architecture** — Import only the components you need for smaller app sizes
+- **Modern SwiftUI** — Declarative UI components with built-in iOS accessibility
+- **Type Safety** — Swift's strong type system for reliable ecommerce operations
+- **Full iOS Support** — Works on iPhone and iPad with adaptive layouts
+
+## Modular Architecture
+
+The SDK is designed with a modular approach. Import only what you need:
+
+### Core Modules
+
+| Module | Description |
+|--------|-------------|
+| **VioCore** | Required — Configuration, models, business logic, API clients |
+| **VioNetwork** | Internal — Shared networking layer with Apollo GraphQL client |
+
+### UI Modules
+
+| Module | Description |
+|--------|-------------|
+| **VioUI** | Optional — SwiftUI components for ecommerce (Product Cards, Cart, Checkout) |
+| **VioDesignSystem** | Internal — Design tokens, colors, typography, base components |
+
+### Live Shopping Modules
+
+| Module | Description |
+|--------|-------------|
+| **VioLiveShow** | Optional — Livestream shopping logic and data models |
+| **VioLiveUI** | Optional — SwiftUI components for livestream interfaces |
+| **VioCastingUI** | Optional — Casting-specific UI (polls, contests, product spotlight during live events) |
+
+### Engagement Modules
+
+| Module | Description |
+|--------|-------------|
+| **VioEngagementSystem** | Optional — Polls, contests, engagement logic |
+| **VioEngagementUI** | Optional — Engagement UI components |
+
+## Configuration Flow
+
+1. **Add the package** — Swift Package Manager or CocoaPods
+2. **Create `vio-config.json`** — API key, theme, cart settings
+3. **Load configuration** — Call `ConfigurationLoader.loadConfiguration()` in your App init
+4. **Use components** — All SDK components work automatically with global config
+
+```swift
+import SwiftUI
+import VioCore
+import VioUI
+
+@main
+struct MyApp: App {
+    @StateObject private var cartManager = CartManager()
+    @StateObject private var checkoutDraft = CheckoutDraft()
+
+    init() {
+        ConfigurationLoader.loadConfiguration()
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(cartManager)
+                .environmentObject(checkoutDraft)
+        }
+    }
+}
+```
+
+## Key Concepts
+
+### CartManager
+
+Global cart state management. Create once and inject via `@EnvironmentObject`. Handles:
+
+- Cart creation and persistence
+- Add/remove items
+- Checkout presentation
+- Sync with backend
+
+### CheckoutDraft
+
+Geographic normalization and checkout state. Used by `VioCheckoutOverlay` for address handling and payment flow.
+
+### ProductService
+
+Recommended way to load products. Provides consistent error handling, caching, and is used internally by SDK components.
+
+### ComponentManager
+
+For dynamic components like `VioOfferBanner`. Receives configuration via WebSocket for real-time campaign updates.
+
+## Design System
+
+When using VioUI, you get access to:
+
+- **VioColors** — Unified color palette (light/dark)
+- **VioTypography** — Typography scale
+- **VioSpacing** — Consistent spacing tokens
+- **VioButton** — Consistent buttons with multiple styles
+
+## Next Steps
+
+- [Installation](/swift/installation) — Add the package
+- [Configuration](/swift/configuration) — Set up `vio-config.json`
+- [Components](/swift/components) — SwiftUI component library
+- [API Reference](/swift/api-reference) — Models and services

@@ -1,0 +1,71 @@
+# Market Availability
+
+The Vio SDK can verify if the market is available for the user's country before enabling components. If unavailable, components are hidden gracefully.
+
+## Overview
+
+- **Automatic detection** — Check if market is available for a country
+- **Graceful hiding** — SDK components hidden when market unavailable
+- **No error messages** — Seamless user experience
+
+## Configuration
+
+### Option 1: No Country Check (SDK Always Enabled)
+
+```swift
+import VioCore
+
+@main
+struct MyApp: App {
+    init() {
+        ConfigurationLoader.loadConfiguration()
+    }
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+
+### Option 2: With User Country Check
+
+```swift
+init() {
+    ConfigurationLoader.loadConfiguration(userCountryCode: "US")
+}
+```
+
+The SDK checks if the market is available for that country. If not, components are hidden.
+
+### Option 3: Auto-Detect from Device
+
+```swift
+init() {
+    // Uses device locale for country
+    ConfigurationLoader.loadConfiguration()
+}
+```
+
+## How It Works
+
+1. You provide `userCountryCode` during configuration (or use device locale)
+2. SDK checks market availability via API
+3. **Available** → SDK works normally
+4. **Unavailable** → SDK disabled silently, components hidden
+
+## Runtime Updates
+
+```swift
+VioConfiguration.setMarketAvailable(
+    true,
+    userCountryCode: "US",
+    availableMarkets: ["US", "CA", "MX"]
+)
+```
+
+## Next Steps
+
+- [Campaign Lifecycle](/swift/guides/campaign-lifecycle) — Time-based component visibility
+- [Configuration](/swift/configuration) — Full config options

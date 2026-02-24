@@ -1,0 +1,80 @@
+# Campaign Lifecycle
+
+The Vio SDK includes campaign lifecycle management to control when components are displayed based on campaign start and end dates.
+
+## Overview
+
+- **Time-based campaigns** — Automatic start/end dates
+- **Real-time updates** — WebSocket connections
+- **Component visibility** — Components shown only when campaign is active
+- **Automatic hiding** — Components hidden when campaigns end
+
+## Configuration
+
+### Without Campaign (Default)
+
+```json
+{
+  "apiKey": "your-api-key",
+  "environment": "production"
+}
+```
+
+All components work normally with no visibility restrictions.
+
+### With Campaign
+
+```json
+{
+  "apiKey": "your-api-key",
+  "environment": "production",
+  "liveShow": {
+    "campaignId": 10
+  }
+}
+```
+
+When `campaignId > 0`, the SDK respects campaign lifecycle and components are shown only when the campaign is active.
+
+## Campaign States
+
+| State | When | Behavior |
+|-------|------|----------|
+| **Upcoming** | Before `startDate` | Components not displayed; waits for `campaign_started` |
+| **Active** | Between `startDate` and `endDate` | Components display normally |
+| **Ended** | After `endDate` | All components automatically hidden |
+
+## WebSocket Events
+
+The SDK listens for:
+
+- **`campaign_started`** — Campaign activates, components load
+- **`campaign_ended`** — Components hidden, WebSocket disconnected
+- **`component_status_changed`** — Component activated/deactivated manually
+- **`component_config_updated`** — Component config updated, UI refreshes
+
+## Usage
+
+```swift
+import VioCore
+
+// Check if campaign is active
+if CampaignManager.shared.isCampaignActive {
+    // Show components
+}
+
+// Check specific state
+switch CampaignManager.shared.campaignState {
+case .upcoming:
+    Text("Campaign starts soon!")
+case .active:
+    Text("Campaign is active")
+case .ended:
+    Text("Campaign has ended")
+}
+```
+
+## Next Steps
+
+- [Market Availability](/swift/guides/market-availability) — Hide components when market unavailable
+- [Configuration](/swift/configuration) — Full config options

@@ -1,0 +1,89 @@
+# Localization
+
+The Vio SDK supports multiple languages through a configurable translation system.
+
+## Overview
+
+- **Multi-language support** for SDK components
+- **Separate translation files** to keep config clean
+- **Default English translations** built-in
+- **Fallback language** support
+
+## Configuration
+
+### Option 1: Separate Translation File (Recommended)
+
+**vio-config.json:**
+
+```json
+{
+  "apiKey": "your-api-key",
+  "environment": "production",
+  "localization": {
+    "defaultLanguage": "es",
+    "fallbackLanguage": "en",
+    "translationsFile": "vio-translations"
+  }
+}
+```
+
+**vio-translations.json** (in the same folder):
+
+```json
+{
+  "translations": {
+    "en": {
+      "cart.title": "Cart",
+      "cart.empty": "Your cart is empty",
+      "checkout.title": "Checkout"
+    },
+    "es": {
+      "cart.title": "Carrito",
+      "cart.empty": "Tu carrito está vacío",
+      "checkout.title": "Checkout"
+    },
+    "no": {
+      "cart.title": "Handlekurv",
+      "cart.empty": "Handlekurven din er tom",
+      "checkout.title": "Kasse"
+    }
+  }
+}
+```
+
+### Option 2: Inline Translations
+
+```json
+{
+  "apiKey": "your-api-key",
+  "localization": {
+    "defaultLanguage": "es",
+    "fallbackLanguage": "en",
+    "translations": {
+      "en": {
+        "cart.title": "Cart",
+        "checkout.title": "Checkout"
+      },
+      "es": {
+        "cart.title": "Carrito",
+        "checkout.title": "Checkout"
+      }
+    }
+  }
+}
+```
+
+## Common Translation Keys
+
+| Key | Description |
+|-----|--------------|
+| `cart.title` | Cart screen title |
+| `cart.empty` | Empty cart message |
+| `checkout.title` | Checkout screen title |
+| `product.addToCart` | Add to cart button |
+| `product.buyNow` | Buy now button |
+
+## Next Steps
+
+- [Configuration](/swift/configuration) — Full config options
+- [Components](/swift/components) — UI components
