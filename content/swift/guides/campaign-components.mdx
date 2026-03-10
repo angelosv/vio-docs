@@ -1,0 +1,228 @@
+# Campaign Components
+
+Campaign components are **zero-config UI blocks** that your app renders, while the Dashboard controls which ones are active, what products they show, and when they appear.
+
+## How It Works
+
+```
+Dashboard                         SDK
+─────────                         ───
+Campaign                          discoverCampaigns()
+  └── Components                  ├── activeComponents populated
+        ├── product_carousel      │
+        │     └── productIds: [1,2,3]   VProductCarousel()
+        │         layout: "compact"          auto-reads config
+        ├── product_spotlight     │
+        │     └── productId: 408841    VProductSpotlight()
+        │         highlightText: "⭐"        auto-reads config
+        └── offer_banner          │
+              └── title: "Tilbud" →   VOfferBanner()
+                  countdown: ...           auto-reads config
+```
+
+**The developer adds the component once. The Dashboard team controls it from then on** — no deploys needed to change products, layouts, or copy.
+
+---
+
+## Components
+
+### `VProductCarousel`
+
+Horizontal or vertical product carousel. Products and layout come from the Dashboard.
+
+```swift
+import VioUI
+
+// Zero config — reads everything from backend
+VProductCarousel()
+
+// Optional layout override (for testing)
+VProductCarousel(layout: "compact")    // 2 cards visible side by side
+VProductCarousel(layout: "full")       // Full-width tall cards
+VProductCarousel(layout: "horizontal") // Image left, info right
+```
+
+**Dashboard configuration (Products → Broadcast → Components):**
+```json
+{
+  "productIds": ["408841", "408895", "408874"],
+  "layout": "compact",
+  "autoPlay": true,
+  "interval": 4000
+}
+```
+
+| Config key | Type | Description |
+|-----------|------|-------------|
+| `productIds` | `[String]` | Products to show. Empty = load all from channel |
+| `layout` | `String` | `"full"`, `"compact"`, `"horizontal"` |
+| `autoPlay` | `Bool` | Auto-scroll between products |
+| `interval` | `Int` | Auto-scroll interval in ms (default: 3000) |
+
+---
+
+### `VProductSpotlight`
+
+Featured product highlight — single product with optional badge text.
+
+```swift
+import VioUI
+
+// Uses first active product_spotlight component
+VProductSpotlight()
+
+// Specific component (if you have multiple spotlights per broadcast)
+VProductSpotlight(componentId: "product-spotlight-1")
+VProductSpotlight(componentId: "product-spotlight-2")
+
+// Optional variant override
+VProductSpotlight(variant: .hero)   // default
+VProductSpotlight(variant: .grid)
+```
+
+**Dashboard configuration:**
+```json
+{
+  "productId": "408841",
+  "highlightText": "Kampens produkt"
+}
+```
+
+---
+
+### `VProductBanner`
+
+Full-width promotional banner for a single product.
+
+```swift
+VProductBanner()
+```
+
+---
+
+### `VOfferBanner`
+
+Offer/promo banner with countdown timer and CTA. Typically shown in the app home or between matches.
+
+```swift
+import VioUI
+
+// Dynamic — reads config from ComponentManager
+VOfferBannerDynamic()
+
+// Static — with explicit config
+if let config = ComponentManager.shared.activeBanner {
+    VOfferBanner(config: config)
+}
+```
+
+---
+
+### `VSponsorBadge`
+
+Compact sponsor logo badge ("Sponset av"). Used inside product components automatically, but can be placed standalone.
+
+```swift
+import VioUI
+
+VSponsorBadge(logoUrl: campaign.currentCampaign?.sponsor?.logoUrl ?? "")
+```
+
+---
+
+## Component Visibility: `shouldShowComponent`
+
+The SDK checks visibility automatically inside each component. You can also check it manually:
+
+```swift
+import VioCore
+
+// Is a specific component type currently active?
+let showCarousel = CampaignManager.shared.shouldShowComponent(type: "product_carousel")
+let showSpotlight = CampaignManager.shared.shouldShowComponent(type: "product_spotlight")
+
+// Get the component config
+let component = CampaignManager.shared.getActiveComponent(type: "product_carousel")
+let config = component?.config
+
+// All active components of a type
+let spotlights = CampaignManager.shared.getActiveComponents(type: "product_spotlight")
+```
+
+A component is shown if:
+- Campaign is active (between start/end dates, not paused)
+- Component `status == "active"` in the backend
+- Component belongs to the current `broadcastContext` (or has no context restriction)
+
+---
+
+## Real-Time Control via WebSocket
+
+The Dashboard can toggle components on/off without any app deployment. The WebSocket event `component_status_changed` updates `activeComponents` in real-time:
+
+```
+Dashboard clicks "Deactivate Carousel"
+    → WebSocket event: component_status_changed { status: "inactive" }
+    → activeComponents updated
+    → VProductCarousel() hides automatically
+```
+
+This means you can:
+- Turn on a product spotlight at exactly minute 35 of a match
+- Swap which products appear in the carousel during halftime
+- Activate an offer banner for a 5-minute flash sale
+- All from the Dashboard, while the stream is live
+
+---
+
+## Component Types Reference
+
+| Type string | Component | Description |
+|-------------|-----------|-------------|
+| `product_carousel` | `VProductCarousel()` | Scrollable product list |
+| `product_spotlight` | `VProductSpotlight()` | Featured single product |
+| `product_banner` | `VProductBanner()` | Full-width product promo |
+| `offer_banner` | `VOfferBanner()` | Countdown offer banner |
+
+---
+
+## Typical Integration Pattern
+
+Add the components in your stream view alongside the engagement overlays:
+
+```swift
+import SwiftUI
+import VioUI
+import VioCore
+
+struct StreamView: View {
+    @StateObject private var campaign = CampaignManager.shared
+
+    var body: some View {
+        VStack {
+            // Video player area
+            VideoPlayerView()
+
+            // Campaign components below the video
+            // These show/hide automatically based on Dashboard config
+            if campaign.isCampaignActive {
+                VProductCarousel()
+                    .padding(.horizontal)
+
+                VProductSpotlight()
+                    .padding(.horizontal)
+            }
+        }
+    }
+}
+```
+
+No conditionals needed around each component — `VProductCarousel()` checks `shouldShowComponent` internally and renders nothing if inactive.
+
+---
+
+## Next Steps
+
+- [Campaign Lifecycle](/swift/guides/campaign-lifecycle) — How autoDiscover and broadcasts work
+- [Components](/swift/components) — Full component reference (overlays + casting UI)
+- [Configuration](/swift/configuration) — vio-config.json reference
