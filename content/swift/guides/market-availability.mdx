@@ -1,16 +1,10 @@
 # Market Availability
 
-The Vio SDK can verify if the market is available for the user's country before enabling components. If unavailable, components are hidden gracefully.
+The SDK can check whether the user's market is available before enabling engagement features. If unavailable, all SDK components are disabled silently — no error states shown to the user.
 
-## Overview
+## How to Enable
 
-- **Automatic detection** — Check if market is available for a country
-- **Graceful hiding** — SDK components hidden when market unavailable
-- **No error messages** — Seamless user experience
-
-## Configuration
-
-### Option 1: No Country Check (SDK Always Enabled)
+Pass `userCountryCode` when loading configuration:
 
 ```swift
 import VioCore
@@ -18,54 +12,51 @@ import VioCore
 @main
 struct MyApp: App {
     init() {
-        ConfigurationLoader.loadConfiguration()
-    }
-    
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+        // SDK checks if Norway is in the available markets list
+        ConfigurationLoader.loadConfiguration(userCountryCode: "NO")
     }
 }
 ```
 
-### Option 2: With User Country Check
+The SDK calls the backend to get the list of available markets and compares against `userCountryCode`. If not available, `VioConfiguration.shared.isMarketAvailable` is set to `false`.
+
+## Without Country Check
+
+If you don't pass `userCountryCode`, the SDK assumes the market is available:
 
 ```swift
-init() {
-    ConfigurationLoader.loadConfiguration(userCountryCode: "US")
+ConfigurationLoader.loadConfiguration()  // always available
+```
+
+## Reading Availability
+
+```swift
+let available = VioConfiguration.shared.isMarketAvailable
+let shouldUse = VioConfiguration.shared.shouldUseSDK  // isConfigured && isMarketAvailable
+
+// Check a specific country
+let norwaySafe = VioConfiguration.shared.isMarketAvailableForCountry("NO")
+
+// Get full market info
+if let info = VioConfiguration.shared.getMarketInfo(for: "NO") {
+    print("Currency: \(info.currency?.code ?? "NOK")")
 }
 ```
 
-The SDK checks if the market is available for that country. If not, components are hidden.
-
-### Option 3: Auto-Detect from Device
+## Typical Flow for Streaming Apps
 
 ```swift
-init() {
-    // Uses device locale for country
-    ConfigurationLoader.loadConfiguration()
-}
-```
+// 1. At startup — check if Norway is available
+ConfigurationLoader.loadConfiguration(userCountryCode: "NO")
 
-## How It Works
+// 2. Before showing the engagement overlay
+guard VioConfiguration.shared.shouldUseSDK else { return }
 
-1. You provide `userCountryCode` during configuration (or use device locale)
-2. SDK checks market availability via API
-3. **Available** → SDK works normally
-4. **Unavailable** → SDK disabled silently, components hidden
-
-## Runtime Updates
-
-```swift
-VioConfiguration.setMarketAvailable(
-    true,
-    userCountryCode: "US",
-    availableMarkets: ["US", "CA", "MX"]
-)
+// 3. Connect to broadcast
+await CampaignManager.shared.setBroadcastContext(context)
 ```
 
 ## Next Steps
 
-- [Campaign Lifecycle](/swift/guides/campaign-lifecycle) — Time-based component visibility
-- [Configuration](/swift/configuration) — Full config options
+- [Campaign Lifecycle](/swift/guides/campaign-lifecycle) — How broadcasts and campaigns connect
+- [Configuration](/swift/configuration) — Full config reference
