@@ -4,11 +4,11 @@ The Vio SDK provides SwiftUI components for live sports engagement. Most come fr
 
 ## Engagement Overlays (`VioEngagementUI`)
 
-These are full-screen takeover overlays triggered automatically by the WebSocket when polls and contests fire.
+Full-screen overlays triggered automatically by WebSocket events.
 
 ### VioEngagementPollOverlay
 
-Full-screen poll overlay. Shown automatically when a poll event arrives via WebSocket.
+Full-screen poll overlay.
 
 ```swift
 import VioEngagementUI
@@ -22,8 +22,17 @@ VioEngagementPollOverlay(
     ],
     duration: 30,
     isChatExpanded: false,
-    onVote: { optionId in /* handle vote */ },
-    onDismiss: { /* handle dismiss */ }
+    onVote: { optionId in
+        Task {
+            guard let context = CampaignManager.shared.currentBroadcastContext else { return }
+            try? await EngagementManager.shared.voteInPoll(
+                pollId: poll.id,
+                optionId: optionId,
+                broadcastContext: context
+            )
+        }
+    },
+    onDismiss: { }
 )
 ```
 
@@ -36,8 +45,16 @@ VioEngagementContestOverlay(
     title: "Kampens spiller",
     subtitle: "Stem på den beste spilleren",
     imageUrl: "https://...",
-    sponsorLogoUrl: "https://...",
-    onParticipate: { /* handle entry */ },
+    sponsorLogoUrl: CampaignManager.shared.currentCampaign?.sponsor?.logoUrl,
+    onParticipate: {
+        Task {
+            guard let context = CampaignManager.shared.currentBroadcastContext else { return }
+            try? await EngagementManager.shared.participateInContest(
+                contestId: contest.id,
+                broadcastContext: context
+            )
+        }
+    },
     onDismiss: { }
 )
 ```
@@ -66,7 +83,7 @@ For full sports casting experiences. Import `VioCastingUI`.
 The main overlay view for a live casting session. Combines match header, timeline, polls, contests, chat, and products.
 
 ```swift
-import ViaCastingUI
+import VioCastingUI
 import VioCore
 
 VCastingActiveView(
@@ -81,17 +98,15 @@ VCastingActiveView(
 
 ### MatchHeaderView
 
-Live match score, team logos, and match status.
+Live match score, team logos, and match status. Score updates automatically every 30 seconds.
 
 ```swift
 MatchHeaderView(match: match)
 ```
 
-Score updates automatically via polling to `/v1/sdk/broadcasts/:id/score` every 30 seconds.
-
 ### TimelinePollCard
 
-Poll card displayed in the match timeline feed.
+Poll card for the timeline feed.
 
 ```swift
 TimelinePollCard(
@@ -103,7 +118,7 @@ TimelinePollCard(
 
 ### ContestCard
 
-Contest participation card in the timeline feed.
+Contest participation card.
 
 ```swift
 ContestCard(
@@ -115,7 +130,7 @@ ContestCard(
 
 ### SponsorBanner
 
-Sponsor logo and branding bar. Assets come from backend automatically.
+Sponsor logo and branding. Assets come from backend automatically.
 
 ```swift
 SponsorBanner()
@@ -140,7 +155,7 @@ VCastingProductModal(
 
 ### AllContentFeed
 
-Main content feed showing all timeline events: polls, contests, announcements, stats.
+Main content feed showing all timeline events.
 
 ```swift
 AllContentFeed(match: match)
@@ -148,32 +163,25 @@ AllContentFeed(match: match)
 
 ### MatchStatsView / MatchLineupView
 
-Match statistics and lineup components.
-
 ```swift
 MatchStatsView(match: match)
 MatchLineupView(match: match)
 ```
 
-### TweetCard / AnnouncementCard / CommentaryCard
+### TweetCard / AnnouncementCard
 
-Social and live commentary cards for the timeline feed.
+Social and commentary cards for the timeline.
 
 ```swift
 TweetCard(tweet: tweet, sponsorAssets: sponsorAssets)
 AnnouncementCard(announcement: announcement)
-CommentaryCard(commentary: commentary)
 ```
 
 ---
 
 ## Product Components (`VioUI`)
 
-For shoppable product displays. Import `VioUI`.
-
 ### ProductService
-
-Load products from the Commerce API.
 
 ```swift
 import VioUI
@@ -190,7 +198,6 @@ let products = try await ProductService.shared.loadProducts(
 ```swift
 @StateObject private var cartManager = CartManager()
 
-// In your view
 .overlay { VioFloatingCartIndicator().environmentObject(cartManager) }
 .sheet(isPresented: $cartManager.isCheckoutPresented) {
     VioCheckoutOverlay()
@@ -208,7 +215,6 @@ import VioDesignSystem
 
 Text("LIVE")
     .foregroundColor(VioColors.primary.toColor())
-    .font(.system(size: VioTypography.caption))
 
 VStack(spacing: VioSpacing.md) {
     VioButton(title: "Stem nå", style: .primary) { }
@@ -219,6 +225,6 @@ VStack(spacing: VioSpacing.md) {
 
 ## Next Steps
 
-- [Core Concepts](/swift/core-concepts) — How CampaignManager and engagement flow together
-- [API Reference](/swift/api-reference) — Models, services, manager APIs
+- [Core Concepts](/swift/core-concepts) — CampaignManager and engagement flow
+- [API Reference](/swift/api-reference) — Full method signatures
 - [Complete Setup Example](/swift/examples/complete-setup) — Full integration
