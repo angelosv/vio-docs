@@ -1,7 +1,8 @@
 export default {
-  'environment-variables': 'Environment Variables',
-  'dark-light-mode': 'Dark/Light Mode',
   'campaign-lifecycle': 'Campaign Lifecycle',
-  'localization': 'Localization',
+  'campaign-components': 'Campaign Components',
   'market-availability': 'Market Availability',
+  'environment-variables': 'Environment Variables',
+  'dark-light-mode': 'Dark / Light Mode',
+  'localization': 'Localization',
 }
