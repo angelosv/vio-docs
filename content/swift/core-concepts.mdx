@@ -1,114 +1,157 @@
 # Core Concepts
 
-The Vio Swift SDK is a modular SDK for **iOS** (iPhone & iPad) to manage **shopping carts, checkouts, discounts, markets, channels and payments** using GraphQL. Built with SwiftUI and designed for scalability and performance.
+Vio brings **live engagement** to sports streaming. Polls, contests, and shoppable products are configured in the Dashboard and delivered in real-time via WebSocket to the SDK.
 
-## Why Swift + SwiftUI?
+## Architecture Overview
 
-- **Native iOS Performance** — Compiled to native code optimized for iPhone and iPad
-- **Modular Architecture** — Import only the components you need for smaller app sizes
-- **Modern SwiftUI** — Declarative UI components with built-in iOS accessibility
-- **Type Safety** — Swift's strong type system for reliable ecommerce operations
-- **Full iOS Support** — Works on iPhone and iPad with adaptive layouts
+```
+Dashboard                   Backend                    SDK
+─────────                   ───────                    ───
+Create Campaign      →      Campaign API          →    CampaignManager
+  ├── Broadcast             ├── /v1/sdk/broadcast      ├── discoverCampaigns()
+  │     └── externalId      │     (by contentId)       │
+  ├── Polls (scheduled)     └── WebSocket /ws/:id  →   EngagementManager
+  ├── Contests                    ├── poll event        ├── polls
+  ├── Sponsor (logo, color)       └── contest event     └── contests
+  └── Sponsor Slots (products)
+```
 
-## Modular Architecture
+**Key principle:** Everything is configured in the Dashboard. The SDK receives it via API and WebSocket — no hardcoded campaign IDs in your app code.
 
-The SDK is designed with a modular approach. Import only what you need:
+## CampaignManager
 
-### Core Modules
-
-| Module | Description |
-|--------|-------------|
-| **VioCore** | Required — Configuration, models, business logic, API clients |
-| **VioNetwork** | Internal — Shared networking layer with Apollo GraphQL client |
-
-### UI Modules
-
-| Module | Description |
-|--------|-------------|
-| **VioUI** | Optional — SwiftUI components for ecommerce (Product Cards, Cart, Checkout) |
-| **VioDesignSystem** | Internal — Design tokens, colors, typography, base components |
-
-### Live Shopping Modules
-
-| Module | Description |
-|--------|-------------|
-| **VioLiveShow** | Optional — Livestream shopping logic and data models |
-| **VioLiveUI** | Optional — SwiftUI components for livestream interfaces |
-| **VioCastingUI** | Optional — Casting-specific UI (polls, contests, product spotlight during live events) |
-
-### Engagement Modules
-
-| Module | Description |
-|--------|-------------|
-| **VioEngagementSystem** | Optional — Polls, contests, engagement logic |
-| **VioEngagementUI** | Optional — Engagement UI components |
-
-## Configuration Flow
-
-1. **Add the package** — Swift Package Manager or CocoaPods
-2. **Create `vio-config.json`** — API key, theme, cart settings
-3. **Load configuration** — Call `ConfigurationLoader.loadConfiguration()` in your App init
-4. **Use components** — All SDK components work automatically with global config
+The central manager. Use as a singleton via `CampaignManager.shared`.
 
 ```swift
-import SwiftUI
 import VioCore
-import VioUI
 
-@main
-struct MyApp: App {
-    @StateObject private var cartManager = CartManager()
-    @StateObject private var checkoutDraft = CheckoutDraft()
+// Connect to a broadcast (call when user opens a stream)
+let context = BroadcastContext(
+    broadcastId: "real-madrid-vs-barcelona-2025-01-24"  // matches externalId in Dashboard
+)
+await CampaignManager.shared.setBroadcastContext(context)
 
-    init() {
-        ConfigurationLoader.loadConfiguration()
-    }
+// Read state
+let campaign = CampaignManager.shared.currentCampaign
+let isConnected = CampaignManager.shared.isConnected
 
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .environmentObject(cartManager)
-                .environmentObject(checkoutDraft)
-        }
-    }
+// Disconnect (call when user exits the stream)
+CampaignManager.shared.disconnect()
+```
+
+### What `setBroadcastContext` does
+
+1. Clears components from the previous broadcast
+2. Calls the backend to find the active campaign for this `broadcastId` (matches `externalId` in Dashboard)
+3. Loads engagement config for the broadcast
+4. Opens a WebSocket connection
+5. Backend sends current polls/contests immediately on connect
+6. New polls/contests arrive in real-time as they trigger during the match
+
+## BroadcastContext
+
+The identifier that links your app to a broadcast configured in the Dashboard.
+
+```swift
+let context = BroadcastContext(
+    broadcastId: "real-madrid-vs-barcelona-2025-01-24",  // Required — matches Dashboard externalId
+    broadcastName: "Real Madrid vs Barcelona",             // Optional — display name
+    channelId: nil,                                        // Optional
+    metadata: nil                                          // Optional
+)
+```
+
+> The `broadcastId` you pass must match the `externalId` field of the broadcast in the Dashboard exactly.
+
+## EngagementManager
+
+Manages the state of polls and contests for the current broadcast. Updated automatically via WebSocket.
+
+```swift
+import VioEngagementSystem
+
+// Observe polls
+@StateObject var engagement = EngagementManager.shared
+
+// In your view
+ForEach(engagement.activePollsForCurrentBroadcast) { poll in
+    PollCard(poll: poll)
 }
 ```
 
-## Key Concepts
+Polls and contests arrive from the WebSocket and are stored here. The `VioCastingUI` components observe this automatically — you don't need to manage state manually when using the pre-built overlays.
 
-### CartManager
+## SponsorAssets
 
-Global cart state management. Create once and inject via `@EnvironmentObject`. Handles:
+Sponsor identity comes from the backend — no hardcoding needed. Colors, logos, and avatar URLs are delivered via the campaign API.
 
-- Cart creation and persistence
-- Add/remove items
-- Checkout presentation
-- Sync with backend
+```swift
+import VioDesignSystem
 
-### CheckoutDraft
+// Access sponsor assets (available after discoverCampaigns)
+let sponsor = CampaignManager.shared.currentCampaign?.sponsor
+let logoUrl = sponsor?.logoUrl
+let primaryColor = sponsor?.primaryColor  // e.g. "#F5153B" for Viaplay
+let avatarUrl = sponsor?.avatarUrl
+```
 
-Geographic normalization and checkout state. Used by `VioCheckoutOverlay` for address handling and payment flow.
+`ViaCastingUI` components use `SponsorAssets` automatically — sponsor branding is applied without any code changes.
 
-### ProductService
+## Module Overview
 
-Recommended way to load products. Provides consistent error handling, caching, and is used internally by SDK components.
+| Module | Key Classes | Use When |
+|--------|------------|---------|
+| `VioCore` | `VioConfiguration`, `CampaignManager`, `ConfigurationLoader` | Always |
+| `VioEngagementSystem` | `EngagementManager`, `CampaignWebSocketManager` | Live engagement |
+| `VioEngagementUI` | `VioEngagementPollOverlay`, `VioEngagementProductOverlay` | Engagement UI |
+| `ViaCastingUI` | `TimelinePollCard`, `SponsorBadge`, `ContestCard` | Sports casting UI |
+| `VioUI` | `ProductService`, `CartManager`, `VioProductCard` | Shoppable products |
+| `VioDesignSystem` | `VioColors`, `VioSpacing`, `VioTypography` | Custom UI |
 
-### ComponentManager
+## Configuration Flow
 
-For dynamic components like `VioOfferBanner`. Receives configuration via WebSocket for real-time campaign updates.
+```swift
+@main
+struct MyApp: App {
+    init() {
+        // 1. Load vio-config.json → applies theme, sets up campaign URLs and API key
+        ConfigurationLoader.loadConfiguration(userCountryCode: "NO")
+        // 2. CampaignManager initializes (autoDiscover mode — waits for setBroadcastContext)
+    }
+}
+
+// Later, when user opens a stream:
+// 3. setBroadcastContext → discoverCampaigns → WebSocket connects → polls/contests arrive
+await CampaignManager.shared.setBroadcastContext(context)
+```
+
+## Market Availability
+
+The SDK checks market availability using the user's country code. If the streaming service isn't available in that market, the SDK disables itself silently.
+
+```swift
+// After loadConfiguration:
+let available = VioConfiguration.shared.isMarketAvailable
+let shouldShow = VioConfiguration.shared.shouldUseSDK  // isConfigured && isMarketAvailable
+```
 
 ## Design System
 
-When using VioUI, you get access to:
+Access design tokens from `VioDesignSystem`:
 
-- **VioColors** — Unified color palette (light/dark)
-- **VioTypography** — Typography scale
-- **VioSpacing** — Consistent spacing tokens
-- **VioButton** — Consistent buttons with multiple styles
+```swift
+import VioDesignSystem
+
+Text("Live")
+    .foregroundColor(VioColors.primary.toColor())
+
+VStack(spacing: VioSpacing.md) {
+    VioButton(title: "Add to Cart", style: .primary) { }
+}
+```
 
 ## Next Steps
 
-- [Installation](/swift/installation) — Add the package
-- [Configuration](/swift/configuration) — Set up `vio-config.json`
-- [Components](/swift/components) — SwiftUI component library
-- [API Reference](/swift/api-reference) — Models and services
+- [Components](/swift/components) — Full component reference
+- [API Reference](/swift/api-reference) — Models and service APIs
+- [Configuration](/swift/configuration) — `vio-config.json` options
