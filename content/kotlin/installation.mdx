@@ -2,79 +2,62 @@
 
 Add the Vio Kotlin SDK to your Android project using Gradle.
 
-## Gradle (Recommended)
+## Requirements
 
-The SDK is published on **Maven Central**.
+| Platform | Minimum |
+|----------|---------|
+| Android API | 24+ (Android 7.0) |
+| Kotlin | 1.9+ |
+| Jetpack Compose BOM | 2024.09.01+ |
+| Android Studio | Hedgehog (2023.1.1)+ |
 
-### Using `build.gradle.kts` (Kotlin DSL)
+## Gradle
 
-Add the dependency to your app-level `build.gradle.kts`:
+The SDK is published on **Maven Central** as `live.vio:vio-kotlin-sdk`.
+
+### `build.gradle.kts` (Kotlin DSL)
 
 ```kotlin
 dependencies {
-    implementation("io.github.reachudevteam:reachu-kotlin-sdk:1.0.1")
+    implementation("live.vio:vio-kotlin-sdk:1.0.1")
 }
 ```
 
-Make sure `mavenCentral()` is included in your repositories block (usually in `settings.gradle.kts`):
+Make sure `mavenCentral()` is in your repository list:
 
 ```kotlin
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-    }
+repositories {
+    mavenCentral()
+    google()
 }
 ```
 
-### Using `build.gradle` (Groovy DSL)
+### `build.gradle` (Groovy)
 
 ```groovy
 dependencies {
-    implementation 'io.github.reachudevteam:reachu-kotlin-sdk:1.0.1'
+    implementation "live.vio:vio-kotlin-sdk:1.0.1"
 }
 ```
 
-## Jetpack Compose Setup
+## Permissions
 
-The SDK requires Jetpack Compose. Enable it in your app-level `build.gradle.kts`:
-
-```kotlin
-android {
-    buildFeatures {
-        compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
-}
-
-dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2024.09.01")
-    implementation(composeBom)
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-
-    // SDK
-    implementation("io.github.reachudevteam:reachu-kotlin-sdk:1.0.1")
-}
-```
-
-## Internet Permission
-
-Add the internet permission to your `AndroidManifest.xml`:
+Add to your `AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-## Minimum Requirements
+## Modules
 
-| Setting | Minimum Value |
-|---------|--------------|
-| Android API | 24 (Android 7.0) |
-| Kotlin | 1.9 |
-| Compose BOM | 2024.09.01 |
-| Java | 17 |
-| Gradle | 8.0+ |
+| Module | Description |
+|--------|-------------|
+| `VioCore` | Required — configuration, CampaignManager, models |
+| `VioEngagementSystem` | Polls, contests, WebSocket engagement |
+| `VioEngagementUI` | Engagement Composable components |
+| `VioCastingUI` | Sports casting overlays |
+
+## Next Steps
+
+- [Getting Started](/kotlin/getting-started) — SDK setup and first broadcast connection
+- [Configuration](/kotlin/configuration) — Configure the SDK for your app
