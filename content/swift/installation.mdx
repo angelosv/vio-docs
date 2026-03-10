@@ -1,8 +1,16 @@
 # Installation
 
-Add the Vio Swift SDK to your project using Swift Package Manager or CocoaPods.
+Add the Vio Swift SDK to your Xcode project using **Swift Package Manager**.
 
-## Swift Package Manager (Recommended)
+## Requirements
+
+| Platform | Minimum Version |
+|----------|-----------------|
+| iOS | 15.0+ |
+| Swift | 5.9+ |
+| Xcode | 15+ |
+
+## Swift Package Manager
 
 ### Using Xcode
 
@@ -14,61 +22,42 @@ Add the Vio Swift SDK to your project using Swift Package Manager or CocoaPods.
    https://github.com/angelosv/VioSwiftSDK.git
    ```
 
-4. Select the version (e.g. `1.0.0` or latest)
-5. Choose the modules you need:
-   - **VioCore** — Required
-   - **VioUI** — SwiftUI components
-   - **VioLiveShow** — Livestream logic
-   - **VioLiveUI** — Livestream UI
-   - **VioComplete** — All modules
+4. Select version **0.1.0-alpha** (or latest)
+5. Add the modules you need to your target
+
+### Available Modules
+
+| Module | Purpose | Required? |
+|--------|---------|-----------|
+| `VioCore` | Configuration, models, CampaignManager | ✅ Always |
+| `VioUI` | SwiftUI product components, cart, checkout | Optional |
+| `VioDesignSystem` | Design tokens (colors, spacing, typography) | Optional |
+| `VioEngagementSystem` | Polls, contests, WebSocket engagement logic | Optional |
+| `VioEngagementUI` | Engagement SwiftUI components | Optional |
+| `VioCastingUI` | Casting overlays, timeline, sponsor badge | Optional |
+
+> **Note:** `VioLiveShow` and `VioLiveUI` are not yet available in this release.
 
 ### Using Package.swift
 
-Add to your `Package.swift`:
-
 ```swift
 dependencies: [
-    .package(url: "https://github.com/angelosv/VioSwiftSDK.git", from: "1.0.0")
+    .package(url: "https://github.com/angelosv/VioSwiftSDK.git", from: "0.1.0-alpha")
+],
+targets: [
+    .target(
+        name: "YourApp",
+        dependencies: [
+            .product(name: "VioCore", package: "VioSwiftSDK"),
+            .product(name: "VioEngagementUI", package: "VioSwiftSDK"),
+            .product(name: "VioCastingUI", package: "VioSwiftSDK"),
+        ]
+    )
 ]
 ```
 
-Then add the products to your target:
+## Next Steps
 
-```swift
-.target(
-    name: "YourApp",
-    dependencies: [
-        .product(name: "VioUI", package: "VioSwiftSDK"),
-        .product(name: "VioCore", package: "VioSwiftSDK")
-    ]
-)
-```
-
-## CocoaPods
-
-Add to your `Podfile`:
-
-```ruby
-platform :ios, '15.0'
-
-target 'YourApp' do
-  use_frameworks!
-  
-  pod 'VioSwiftSDK', :git => 'https://github.com/angelosv/VioSwiftSDK.git', :tag => '1.0.0'
-end
-```
-
-Then run:
-
-```bash
-pod install
-```
-
-## Minimum Requirements
-
-| Platform | Minimum Version |
-|----------|-----------------|
-| iOS | 15.0 |
-| macOS | 12.0 |
-| tvOS | 15.0 |
-| watchOS | 8.0 |
+1. [Create a campaign in the Dashboard](/swift/getting-started#dashboard-setup) — get your API key and broadcast configuration
+2. [Quick Start](/swift/quick-start) — integrate in under 10 minutes
+3. [Configuration](/swift/configuration) — set up your `vio-config.json`
