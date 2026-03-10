@@ -1,3 +1,30 @@
 # Changelog
 
-Content coming soon...
+## v0.1.0-alpha — 2026-03-04
+
+Initial alpha release. Core engagement features for live sports streaming.
+
+### New Features
+
+- **WebSocket-driven engagement** — Polls and contests delivered via WebSocket in real-time. `loadEngagement()` via HTTP is no longer used.
+- **`setBroadcastContext()`** — Single call to connect to a broadcast. Auto-discovers the campaign, opens WebSocket, and starts receiving events.
+- **`autoDiscover: true`** — Campaign discovery by `externalId` (the `contentId` passed by the streaming platform). No hardcoded campaign IDs in app code.
+- **`SponsorAssets`** — Centralized sponsor identity. Logo URL, avatar URL, and primary color come from the backend. `textOnPrimary` is calculated by the SDK using WCAG contrast ratio.
+- **`BroadcastContext`** — Replaced `MatchContext`. Includes `broadcastId`, `broadcastName`, `channelId`, `metadata`. `MatchContext` remains as a typealias for backward compatibility.
+- **Memory fixes** — `NSCache` limits (50 items / 50 MB), `Timer` cleanup on `onDisappear`, `NotificationCenter` token management.
+- **`VioColors.primary`** — All sponsor primary colors use this token. No more hardcoded hex values.
+- **Dashboard-driven configuration** — Polls, contests, sponsor slots, and product placements are configured entirely in the Vio Dashboard. No SDK changes needed to update campaign content.
+
+### Breaking Changes
+
+- `MatchContext` is deprecated. Use `BroadcastContext` instead.
+- `setMatchContext(_:)` is deprecated. Use `setBroadcastContext(_:)`.
+- `discoverCampaigns(matchId:)` is deprecated. Use `discoverCampaigns(broadcastId:)`.
+
+### Bug Fixes
+
+- `contentId` not passed to contest WebSocket connection → contests never connected WS
+- Race condition: WS snapshot received before `currentBroadcastContext` was set → reconnect fix
+- `shouldShowComponent` filtered components without broadcastContext → carousel disappeared
+- `activeComponents.removeAll()` in `setBroadcastContext` caused infinite loading
+- `_comment` field in `productMappings` (JSON) broke `JSONDecoder` → removed
