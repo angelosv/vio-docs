@@ -1,222 +1,255 @@
 # API Reference
 
-Reference for VioCore models, VioUI services, and configuration.
+Reference for public APIs in VioCore, VioEngagementSystem, VioUI, and VioCastingUI.
 
 ## VioCore
 
-The `VioCore` module provides configuration, models, and base functionality.
-
 ### VioConfiguration
 
-Global configuration. Load via `ConfigurationLoader.loadConfiguration()` or configure programmatically.
+Global configuration singleton. Call `configure()` once at startup.
 
 ```swift
 import VioCore
 
-// Access shared config
+// Access state
 let config = VioConfiguration.shared
-let apiKey = config.apiKey
-let theme = config.theme
+let isConfigured = config.isConfigured
+let isAvailable = config.isMarketAvailable
+let shouldUse = config.shouldUseSDK  // isConfigured && isMarketAvailable
 
 // Runtime updates
 VioConfiguration.updateTheme(.dark)
 VioConfiguration.updateCartConfiguration(CartConfiguration(...))
-VioConfiguration.setMarketAvailable(true, userCountryCode: "US", availableMarkets: ["US", "CA"])
 ```
 
 ### ConfigurationLoader
 
-Load configuration from `vio-config.json` or environment variables.
+Load config from bundle, string, remote URL, or environment variables.
 
 ```swift
 import VioCore
 
-// Load from default vio-config.json
-ConfigurationLoader.loadConfiguration()
+// Recommended: auto-detect vio-config.json
+ConfigurationLoader.loadConfiguration(userCountryCode: "NO")
 
-// Load with specific country (for testing)
-ConfigurationLoader.loadConfiguration(userCountryCode: "DE")
+// Specific file
+ConfigurationLoader.loadConfiguration(fileName: "vio-config-viaplay", userCountryCode: "NO")
 
-// Load from custom file
-try? ConfigurationLoader.loadFromJSON(fileName: "my-config")
+// From JSON string
+try? ConfigurationLoader.loadFromJSONString(jsonString)
+
+// From remote URL
+try await ConfigurationLoader.loadFromRemote(url: URL(string: "https://...")!)
+
+// From environment variables (CI / Xcode Scheme)
+ConfigurationLoader.loadFromEnvironment()
 ```
 
-## Core Models
+### CampaignManager
 
-### Product
+Manages campaign discovery, WebSocket connection, and component lifecycle.
 
 ```swift
-public struct Product: Identifiable, Codable {
-    public let id: String
-    public let title: String
-    public let brand: String?
-    public let description: String?
-    public let sku: String
-    public let quantity: Int?
-    public let price: Price
-    public let images: [ProductImage]
-    public let variants: [Variant]
+import VioCore
+
+// Connect to a broadcast
+let context = BroadcastContext(
+    broadcastId: "real-madrid-vs-barcelona-2025-01-24",
+    broadcastName: "Real Madrid vs Barcelona"
+)
+await CampaignManager.shared.setBroadcastContext(context)
+
+// Read state
+let campaign = CampaignManager.shared.currentCampaign
+let context = CampaignManager.shared.currentBroadcastContext
+let isConnected = CampaignManager.shared.isConnected
+let isActive = CampaignManager.shared.isCampaignActive
+
+// Disconnect
+CampaignManager.shared.disconnect()
+
+// Manual discovery
+await CampaignManager.shared.discoverCampaigns(broadcastId: "broadcast-id")
+```
+
+### BroadcastContext
+
+Links the SDK to a broadcast configured in the Dashboard.
+
+```swift
+public struct BroadcastContext: Codable, Equatable {
+    public let broadcastId: String       // Required — matches externalId in Dashboard
+    public let broadcastName: String?    // Optional display name
+    public let startTime: String?        // ISO 8601
+    public let channelId: Int?
+    public let metadata: [String: String]?
 }
 ```
 
-### Price
+### Campaign
 
 ```swift
-public struct Price: Codable {
-    public let amount: Float
-    public let currencyCode: String
-    public let compareAt: Float?
-    public var displayAmount: String { get }
-    public var displayCompareAtAmount: String? { get }
+public struct Campaign: Codable, Identifiable {
+    public let id: Int
+    public let startDate: String?
+    public let endDate: String?
+    public let isPaused: Bool?
+    public let campaignLogo: String?
+    public let sponsor: SponsorInfo?
+    public let broadcastContext: BroadcastContext?
 }
 ```
 
-### Cart
+### SponsorInfo
+
+Sponsor identity delivered from the backend. No hardcoding needed.
 
 ```swift
-public struct Cart: Identifiable, Codable {
-    public let id: String
-    public let customerSessionId: String
-    public let currency: String
-    public let lineItems: [LineItem]
-    public let totals: CartTotals
+public struct SponsorInfo {
+    public let name: String?
+    public let logoUrl: String?
+    public let avatarUrl: String?
+    public let primaryColor: String?     // e.g. "#F5153B"
+    public let badgeText: String?
 }
 ```
 
-## ProductService (VioUI)
+### CampaignConfiguration
 
-Shared singleton for loading products. Used internally by SDK components.
+Set in `vio-config.json` under `"campaigns"`.
+
+```swift
+CampaignConfiguration(
+    webSocketBaseURL: "wss://api.vio.live",
+    restAPIBaseURL: "https://api.vio.live",
+    campaignApiKey: "YOUR_CAMPAIGN_API_KEY",
+    autoDiscover: true
+)
+```
+
+---
+
+## VioEngagementSystem
+
+### EngagementManager
+
+Manages poll and contest state. Updated automatically via WebSocket.
+
+```swift
+import VioEngagementSystem
+
+@StateObject var engagement = EngagementManager.shared
+
+// Current polls for active broadcast
+engagement.activePollsForCurrentBroadcast
+
+// Current contests
+engagement.activeContestsForCurrentBroadcast
+
+// Vote on a poll
+await engagement.vote(pollId: poll.id, optionId: optionId)
+```
+
+---
+
+## VioUI
+
+### ProductService
+
+Load products from the Commerce API.
 
 ```swift
 import VioUI
 
-// Load single product
+// Single product
 let product = try await ProductService.shared.loadProduct(
-    productId: "123",
-    currency: "USD",
-    country: "US"
+    productId: "408841",
+    currency: "NOK",
+    country: "NO"
 )
 
-// Load multiple products
+// Multiple products
 let products = try await ProductService.shared.loadProducts(
-    productIds: [123, 456, 789],
-    currency: "USD",
-    country: "US"
-)
-
-// Load all products (pass nil)
-let allProducts = try await ProductService.shared.loadProducts(
-    productIds: nil,
-    currency: "USD",
-    country: "US"
+    productIds: [408841, 408895],
+    currency: "NOK",
+    country: "NO"
 )
 
 // Clear cache
 ProductService.shared.clearCache()
 ```
 
-### ProductServiceError
-
-```swift
-public enum ProductServiceError: LocalizedError {
-    case invalidConfiguration(String)
-    case invalidProductId(String)
-    case productNotFound(Int)
-    case sdkError(SdkException)
-    case networkError(Error)
-}
-```
-
-## CartManager (VioUI)
-
-Global cart state. Use with `@StateObject` and `@EnvironmentObject`.
+### CartManager
 
 ```swift
 import VioUI
 
 @StateObject private var cartManager = CartManager()
 
-// Add product
 await cartManager.addProduct(product)
-
-// Present checkout
 cartManager.isCheckoutPresented = true
 
-// Cart state
-let cart = cartManager.cart
-let itemCount = cart?.lineItems.count ?? 0
+let count = cartManager.cart?.lineItems.count ?? 0
 ```
 
-## CheckoutDraft (VioUI)
+---
 
-Checkout state for address normalization and payment flow.
+## VioEnvironment
 
 ```swift
-import VioUI
-
-@StateObject private var checkoutDraft = CheckoutDraft()
-
-// Use with VioCheckoutOverlay
-VioCheckoutOverlay()
-    .environmentObject(cartManager)
-    .environmentObject(checkoutDraft)
+public enum VioEnvironment {
+    case development   // → https://api-dev.vio.live
+    case sandbox       // → https://api-dev.vio.live (same as development)
+    case production    // → https://api.vio.live
+}
 ```
 
-## Design System (VioDesignSystem)
+---
 
-Design tokens available when using VioUI:
+## ConfigurationError
 
 ```swift
-// Typography
-VioTypography.largeTitle
-VioTypography.title
-VioTypography.body
-VioTypography.caption
+public enum ConfigurationError: LocalizedError {
+    case notConfigured
+    case missingAPIKey
+    case fileNotFound(fileName: String)
+    case invalidJSON
+    case invalidPlist
+}
+```
+
+---
+
+## Design System
+
+```swift
+import VioDesignSystem
 
 // Colors
-VioColors.primary
-VioColors.secondary
+VioColors.primary       // Sponsor primary (from backend) or theme fallback
+VioColors.background
 VioColors.surface
 VioColors.text
 VioColors.textSecondary
 
 // Spacing
-VioSpacing.xs
-VioSpacing.sm
-VioSpacing.md
-VioSpacing.lg
-VioSpacing.xl
+VioSpacing.xs  // 4pt
+VioSpacing.sm  // 8pt
+VioSpacing.md  // 16pt
+VioSpacing.lg  // 24pt
+VioSpacing.xl  // 32pt
+
+// Typography
+VioTypography.largeTitle
+VioTypography.title
+VioTypography.body
+VioTypography.caption
 ```
 
-## Environment Endpoints
-
-| Environment | GraphQL | Campaigns |
-|-------------|---------|-----------|
-| Development | `https://graph-ql-dev.vio.live` | `https://api-dev.vio.live` |
-| Production | `https://api-ecom.vio.live` | `https://api.vio.live` |
-
-## Error Handling
-
-Handle errors with `do/catch`:
-
-```swift
-do {
-    let product = try await ProductService.shared.loadProduct(
-        productId: "123",
-        currency: "USD",
-        country: "US"
-    )
-} catch ProductServiceError.productNotFound(let id) {
-    print("Product not found: \(id)")
-} catch ProductServiceError.invalidConfiguration(let message) {
-    print("Config error: \(message)")
-} catch {
-    print("Error: \(error.localizedDescription)")
-}
-```
+---
 
 ## Next Steps
 
 - [Components](/swift/components) — SwiftUI component library
-- [Configuration](/swift/configuration) — Full config options
+- [Configuration](/swift/configuration) — vio-config.json reference
 - [Complete Setup](/swift/examples/complete-setup) — Full integration example
