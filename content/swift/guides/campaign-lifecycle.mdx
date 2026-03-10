@@ -1,80 +1,106 @@
 # Campaign Lifecycle
 
-The Vio SDK includes campaign lifecycle management to control when components are displayed based on campaign start and end dates.
+Everything is configured in the **Vio Dashboard** — the SDK discovers campaigns automatically at runtime. No campaign IDs in your app code.
 
-## Overview
+## How It Works
 
-- **Time-based campaigns** — Automatic start/end dates
-- **Real-time updates** — WebSocket connections
-- **Component visibility** — Components shown only when campaign is active
-- **Automatic hiding** — Components hidden when campaigns end
-
-## Configuration
-
-### Without Campaign (Default)
-
-```json
-{
-  "apiKey": "your-api-key",
-  "environment": "production"
-}
+```
+Dashboard                     SDK
+─────────                     ───
+Broadcast                     setBroadcastContext(broadcastId)
+  └── externalId         →    discoverCampaigns(broadcastId)
+        └── Campaign           ├── currentCampaign set
+              ├── Polls        ├── WebSocket /ws/:campaignId connected
+              ├── Contests     ├── Polls received via WS
+              └── Sponsor      └── Sponsor assets applied
 ```
 
-All components work normally with no visibility restrictions.
+## Setup: `autoDiscover: true`
 
-### With Campaign
+Use this in your `vio-config.json` — no hardcoded campaign IDs:
 
 ```json
 {
-  "apiKey": "your-api-key",
-  "environment": "production",
-  "liveShow": {
-    "campaignId": 10
+  "apiKey": "YOUR_API_KEY",
+  "campaigns": {
+    "webSocketBaseURL": "wss://api.vio.live",
+    "restAPIBaseURL": "https://api.vio.live",
+    "campaignApiKey": "YOUR_CAMPAIGN_API_KEY",
+    "autoDiscover": true
   }
 }
 ```
 
-When `campaignId > 0`, the SDK respects campaign lifecycle and components are shown only when the campaign is active.
+## Connect to a Broadcast
+
+Call `setBroadcastContext` with the broadcast's `externalId` as configured in the Dashboard:
+
+```swift
+import VioCore
+
+// When user opens a stream
+let context = BroadcastContext(
+    broadcastId: "real-madrid-vs-barcelona-2025-01-24",  // = externalId in Dashboard
+    broadcastName: "Real Madrid vs Barcelona"
+)
+await CampaignManager.shared.setBroadcastContext(context)
+```
+
+This triggers:
+1. API call to `GET /v1/sdk/broadcast?contentId=<broadcastId>` — finds the campaign
+2. WebSocket connects to `/ws/:campaignId`
+3. Backend sends the current state (active polls, contests) immediately
+4. Real-time events flow in as you scheduled them in the Dashboard
+
+## Disconnect
+
+```swift
+// When user closes the stream
+CampaignManager.shared.disconnect()
+```
 
 ## Campaign States
 
 | State | When | Behavior |
 |-------|------|----------|
-| **Upcoming** | Before `startDate` | Components not displayed; waits for `campaign_started` |
-| **Active** | Between `startDate` and `endDate` | Components display normally |
-| **Ended** | After `endDate` | All components automatically hidden |
+| **Active** | Between campaign start/end dates, broadcast is `live` | Components shown, WS connected |
+| **Upcoming** | Before campaign start date | `campaignState = .upcoming` |
+| **Ended** | After campaign end date | Components hidden, WS disconnected |
+| **Paused** | Dashboard manually paused | `isPaused = true`, components hidden |
+
+```swift
+// Check state in your UI
+switch CampaignManager.shared.campaignState {
+case .active:
+    // Show overlay
+case .upcoming:
+    Text("Starting soon")
+case .ended:
+    // Hide overlay
+}
+
+let isActive = CampaignManager.shared.isCampaignActive
+```
+
+## Multiple Broadcasts
+
+If you have multiple streams running, each call to `setBroadcastContext` resets to a fresh state for the new broadcast — previous polls and contests are cleared automatically.
 
 ## WebSocket Events
 
-The SDK listens for:
+The SDK handles these automatically:
 
-- **`campaign_started`** — Campaign activates, components load
-- **`campaign_ended`** — Components hidden, WebSocket disconnected
-- **`component_status_changed`** — Component activated/deactivated manually
-- **`component_config_updated`** — Component config updated, UI refreshes
-
-## Usage
-
-```swift
-import VioCore
-
-// Check if campaign is active
-if CampaignManager.shared.isCampaignActive {
-    // Show components
-}
-
-// Check specific state
-switch CampaignManager.shared.campaignState {
-case .upcoming:
-    Text("Campaign starts soon!")
-case .active:
-    Text("Campaign is active")
-case .ended:
-    Text("Campaign has ended")
-}
-```
+| Event | Effect |
+|-------|--------|
+| `poll` | Poll added/updated in `EngagementManager` |
+| `contest` | Contest added/updated |
+| `shoppable_ad` | Product overlay triggered |
+| `campaign_started` | Campaign activated |
+| `campaign_ended` | Components hidden, WS closed |
+| `tweet` | Tweet card added to timeline |
+| `chat_message` | Chat message received |
 
 ## Next Steps
 
-- [Market Availability](/swift/guides/market-availability) — Hide components when market unavailable
-- [Configuration](/swift/configuration) — Full config options
+- [Market Availability](/swift/guides/market-availability) — Disable SDK per market
+- [Configuration](/swift/configuration) — Full vio-config.json reference
