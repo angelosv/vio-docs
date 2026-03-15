@@ -12,8 +12,10 @@ Create Campaign      →      Campaign API          →    CampaignManager
   │     └── externalId      │     (by contentId)       │
   ├── Polls (scheduled)     └── WebSocket /ws/:id  →   EngagementManager
   ├── Contests                    ├── poll event        ├── polls
-  ├── Sponsor (logo, color)       └── contest event     └── contests
-  └── Sponsor Slots (products)
+  ├── Sponsor (logo, color)       ├── contest event     ├── contests
+  ├── Sponsor Moments             ├── sponsor event     ├── sponsorSlots
+  │     └── product/lead/link     └── lineup_show   →   LineupTimelineHandler
+  └── Lineup (auto at -10min)                           └── MatchLineupView
 ```
 
 **Key principle:** Everything is configured in the Dashboard. The SDK receives it via API and WebSocket — no hardcoded campaign IDs in your app code.
@@ -80,6 +82,23 @@ ForEach(engagement.activePollsForCurrentBroadcast) { poll in
 ```
 
 Polls and contests arrive from the WebSocket and are stored here. The `VioCastingUI` components observe this automatically — you don't need to manage state manually when using the pre-built overlays.
+
+## Sponsor Moments
+
+**Sponsor Moments** are timed product placements that appear at specific match minutes (e.g., minute 35, 45, 70). They're configured in the Dashboard under each broadcast — the SDK receives them via WebSocket and renders them automatically.
+
+Slot types: `product` · `lead` · `poll_cta` · `contest_cta` · `link`
+
+> The public name is **Sponsor Moments**. In the API and backend they're `sponsor_slots` — both terms refer to the same thing.
+
+## Lineup
+
+Match lineups are delivered via the `lineup_show` WebSocket event. The backend triggers this automatically 10 minutes before kickoff. The `MatchLineupView` component listens for this event and renders both teams' formations — no manual data fetching required.
+
+```swift
+// Just pass the broadcastId — the lineup arrives automatically
+MatchLineupView(broadcastId: "real-madrid-vs-mancity-2026-03-11")
+```
 
 ## SponsorAssets
 

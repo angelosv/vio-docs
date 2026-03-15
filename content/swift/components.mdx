@@ -163,9 +163,13 @@ AllContentFeed(match: match)
 
 ### MatchStatsView / MatchLineupView
 
+`MatchLineupView` is backend-driven — pass the `broadcastId` and the lineup is delivered automatically via WebSocket (`lineup_show` event) 10 minutes before kickoff. No manual data fetching required.
+
 ```swift
 MatchStatsView(match: match)
-MatchLineupView(match: match)
+
+// Backend-driven — lineup arrives via WebSocket
+MatchLineupView(broadcastId: "real-madrid-vs-mancity-2026-03-11")
 ```
 
 ### TweetCard / AnnouncementCard
@@ -205,6 +209,27 @@ let products = try await ProductService.shared.loadProducts(
         .environmentObject(checkoutDraft)
 }
 ```
+
+### VPaymentSheet
+
+Apple Pay sheet component. Handles the full payment flow: Apple Pay authorization, Stripe tokenization, and order submission. Merchant ID `merchant.live.vio` is pre-configured via the Dashboard.
+
+```swift
+import VioUI
+
+VPaymentSheet(
+    cart: cartManager.cart,
+    onSuccess: { order in
+        // Order confirmed — show confirmation UI
+        print("Order \(order.id) confirmed")
+    },
+    onCancel: {
+        // User dismissed — nothing to do
+    }
+)
+```
+
+> **TV→iPhone handoff:** On tvOS, `VPaymentSheet` initiates an APNs-based handoff — the Apple Pay sheet appears on the user's paired iPhone. No additional configuration needed in the SDK.
 
 ---
 

@@ -1,5 +1,55 @@
 # Changelog
 
+## v0.2.0-alpha — 2026-03-12
+
+### New Features
+
+- **Lineup Timeline** — Match lineup delivered via WebSocket event `lineup_show`. Backend triggers it automatically 10 minutes before kickoff. `MatchLineupView` is now backend-driven — pass `broadcastId` and it handles everything.
+
+  ```swift
+  // Before (manual match object)
+  MatchLineupView(match: match)
+
+  // Now (backend-driven)
+  MatchLineupView(broadcastId: "real-madrid-vs-mancity-2026-03-11")
+  ```
+
+- **Apple Pay** — `VPaymentSheet` component added. Handles the full Apple Pay sheet, Stripe tokenization, and order submission. Merchant ID: `merchant.live.vio`. Supports iOS and tvOS (TV→iPhone handoff).
+
+  ```swift
+  import VioUI
+
+  VPaymentSheet(
+      cart: cartManager.cart,
+      onSuccess: { order in /* handle */ },
+      onCancel: { }
+  )
+  ```
+
+- **`videoTimestamp` — dynamic** — Lineup `videoTimestamp` is now calculated by the backend based on broadcast start time. No SDK change needed.
+
+- **Sponsor Moments** — "Shoppable Ads" are now called **Sponsor Moments** in all public-facing surfaces. API and Dashboard internals still use `sponsor_slots`. Slot types: `product`, `lead`, `poll_cta`, `contest_cta`, `link`.
+
+### Bug Fixes
+
+- `AnalyticsManager` now compiles on macOS — added `#if os(iOS) || os(tvOS)` guard
+- `CachedAsyncImage` — added `UIImage` guard to prevent nil crash
+- `VButton` and `VToastNotification` — fixed `#Preview` crash in macOS SPM builds
+
+### Tests
+
+105 unit tests added across 5 files. All pass.
+
+| File | Tests |
+|------|-------|
+| `VioConfigurationTests.swift` | 22 |
+| `CampaignModelsTests.swift` | 30 |
+| `LineupModelsTests.swift` | 12 |
+| `PriceFormattingTests.swift` | 25 |
+| `VioSessionContextTests.swift` | 14 |
+
+---
+
 ## v0.1.0-alpha — 2026-03-04
 
 Initial alpha release. Core engagement features for live sports streaming.
