@@ -1,0 +1,165 @@
+# Zero-Config SDK
+
+> **Status: Upcoming** — This is the target API for the next major release. The current SDK uses `vio-config.json`. Migration will be straightforward.
+
+The goal: one line to initialize Vio. No JSON file, no `campaignApiKey`, no `autoDiscover` flag. The backend delivers everything at runtime.
+
+```swift
+// Target API
+VioSDK.configure(apiKey: "your-api-key")
+```
+
+---
+
+## What Changes
+
+### Today (v0.x)
+
+```swift
+// App startup — requires vio-config.json in bundle
+ConfigurationLoader.loadConfiguration(userCountryCode: "NO")
+
+// vio-config.json
+{
+  "apiKey": "YOUR_API_KEY",
+  "campaigns": {
+    "webSocketBaseURL": "wss://api.vio.live",
+    "restAPIBaseURL": "https://api.vio.live",
+    "campaignApiKey": "YOUR_CAMPAIGN_API_KEY",  // same as apiKey
+    "autoDiscover": true
+  }
+}
+```
+
+### Zero-Config (next)
+
+```swift
+// App startup — no JSON file needed
+VioSDK.configure(apiKey: "your-api-key")
+
+// When user opens a stream
+await VioSDK.setContent(id: "real-madrid-vs-mancity-2026-03-11")
+```
+
+The backend call `GET /v1/sdk/config?apiKey=your-api-key` returns:
+
+```json
+{
+  "webSocketBaseURL": "wss://api.vio.live",
+  "restAPIBaseURL": "https://api.vio.live",
+  "theme": { ... },
+  "commerceApiKey": "...",
+  "featureFlags": { "lineup": true, "payments": true },
+  "localization": { "defaultLanguage": "no" },
+  "availableMarkets": ["NO", "SE", "DK"]
+}
+```
+
+Everything that lives in `vio-config.json` today will come from this endpoint.
+
+---
+
+## What Gets Eliminated
+
+| Today | Zero-Config |
+|-------|-------------|
+| `vio-config.json` in bundle | ❌ Not needed |
+| `campaignApiKey` (duplicate of `apiKey`) | ❌ Removed |
+| `autoDiscover: true` flag | ❌ Always on |
+| `ConfigurationLoader.loadConfiguration()` | ❌ Replaced by `VioSDK.configure()` |
+| `setBroadcastContext(BroadcastContext(...))` | ✅ Simplified to `VioSDK.setContent(id:)` |
+
+---
+
+## Full Integration (target)
+
+```swift
+import VioSDK
+
+@main
+struct MyApp: App {
+    init() {
+        VioSDK.configure(apiKey: "your-api-key")
+    }
+    var body: some Scene {
+        WindowGroup { ContentView() }
+    }
+}
+```
+
+```swift
+// When user opens a live stream
+struct PlayerView: View {
+    let contentId: String
+
+    var body: some View {
+        VideoPlayer(...)
+            .task {
+                await VioSDK.setContent(id: contentId)
+            }
+            .onDisappear {
+                VioSDK.disconnect()
+            }
+            .overlay {
+                VioEngagementOverlay()
+            }
+    }
+}
+```
+
+---
+
+## Backend Config Endpoint
+
+The SDK will call this once at configure time and cache the response.
+
+```
+GET /v1/sdk/config?apiKey=<apiKey>
+```
+
+Response drives:
+- WebSocket and REST base URLs
+- Theme (colors, typography)
+- Commerce API key (for product/cart flows)
+- Feature flags (enable/disable lineup, payments, polls per client)
+- Localization defaults
+- Available markets (replaces `marketFallback` in JSON)
+
+---
+
+## Migration from v0.x
+
+When released, migration is a 3-step change:
+
+1. **Remove** `vio-config.json` from Copy Bundle Resources
+2. **Replace** `ConfigurationLoader.loadConfiguration(userCountryCode:)` → `VioSDK.configure(apiKey:)`
+3. **Replace** `CampaignManager.shared.setBroadcastContext(BroadcastContext(broadcastId:))` → `VioSDK.setContent(id:)`
+
+Everything else — components, engagement flow, WebSocket — stays identical.
+
+---
+
+## Current Workaround
+
+Until this ships, you can approximate zero-config programmatically (no JSON file):
+
+```swift
+VioConfiguration.configure(
+    apiKey: "your-api-key",
+    environment: .production,
+    campaignConfig: CampaignConfiguration(
+        webSocketBaseURL: "wss://api.vio.live",
+        restAPIBaseURL: "https://api.vio.live",
+        campaignApiKey: "your-api-key",  // same value as apiKey
+        autoDiscover: true
+    )
+)
+```
+
+---
+
+## Next Steps
+
+- [Configuration](/swift/configuration) — Current `vio-config.json` reference
+- [Campaign Lifecycle](/swift/guides/campaign-lifecycle) — Current broadcast and WebSocket flow
+- [Changelog](/swift/changelog) — Release history
