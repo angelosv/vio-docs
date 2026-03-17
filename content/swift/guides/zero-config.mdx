@@ -1,57 +1,23 @@
 # Zero-Config SDK
 
-One line to initialize Vio. No JSON file, no `campaignApiKey`, no `autoDiscover` flag. The backend delivers everything at runtime.
+One line to initialize Vio. No config files, no duplicate API keys, no flags. The backend delivers everything at runtime.
 
 ```swift
+import VioCore
+
 VioSDK.configure(apiKey: "your-api-key")
 ```
+
+Available since **v0.2.0**.
 
 ---
 
 ## Integration
 
-```swift
-// App startup — no config files needed
-VioSDK.configure(apiKey: "your-api-key")
-
-// When user opens a stream
-await VioSDK.setContent(id: "real-madrid-vs-mancity-2026-03-11")
-```
-
-The backend call `GET /v1/sdk/config?apiKey=your-api-key` returns:
-
-```json
-{
-  "webSocketBaseURL": "wss://api.vio.live",
-  "restAPIBaseURL": "https://api.vio.live",
-  "theme": { ... },
-  "commerceApiKey": "...",
-  "featureFlags": { "lineup": true, "payments": true },
-  "localization": { "defaultLanguage": "no" },
-  "availableMarkets": ["NO", "SE", "DK"]
-}
-```
-
-Everything that lives in `vio-config.json` today will come from this endpoint.
-
----
-
-## What Gets Eliminated
-
-| Today | Zero-Config |
-|-------|-------------|
-| `vio-config.json` in bundle | ❌ Not needed |
-| `campaignApiKey` (duplicate of `apiKey`) | ❌ Removed |
-| `autoDiscover: true` flag | ❌ Always on |
-| `ConfigurationLoader.loadConfiguration()` | ❌ Replaced by `VioSDK.configure()` |
-| `setBroadcastContext(BroadcastContext(...))` | ✅ Simplified to `VioSDK.setContent(id:)` |
-
----
-
-## Full Integration (target)
+### App startup
 
 ```swift
-import VioSDK
+import VioCore
 
 @main
 struct MyApp: App {
@@ -64,8 +30,9 @@ struct MyApp: App {
 }
 ```
 
+### When user opens a stream
+
 ```swift
-// When user opens a live stream
 struct PlayerView: View {
     let contentId: String
 
@@ -84,40 +51,77 @@ struct PlayerView: View {
 }
 ```
 
----
-
-## Backend Config Endpoint
-
-The SDK will call this once at configure time and cache the response.
-
-```
-GET /v1/sdk/config?apiKey=<apiKey>
-```
-
-Response drives:
-- WebSocket and REST base URLs
-- Theme (colors, typography)
-- Commerce API key (for product/cart flows)
-- Feature flags (enable/disable lineup, payments, polls per client)
-- Localization defaults
-- Available markets (replaces `marketFallback` in JSON)
+That's the full integration. No JSON file, no additional configuration.
 
 ---
 
-## Migration from v0.x
+## What the SDK fetches at startup
 
-When released, migration is a 3-step change:
+On `VioSDK.configure(apiKey:)`, the SDK calls `GET /v1/sdk/config?apiKey=<apiKey>` once and caches the response:
 
-1. **Remove** `vio-config.json` from Copy Bundle Resources
-2. **Replace** `ConfigurationLoader.loadConfiguration(userCountryCode:)` → `VioSDK.configure(apiKey:)`
-3. **Replace** `CampaignManager.shared.setBroadcastContext(BroadcastContext(broadcastId:))` → `VioSDK.setContent(id:)`
+```json
+{
+  "webSocketBaseURL": "wss://api.vio.live",
+  "restAPIBaseURL": "https://api.vio.live",
+  "theme": { "primaryColor": "#F5153B" },
+  "commerceApiKey": "...",
+  "featureFlags": { "lineup": true, "payments": true, "polls": true },
+  "localization": { "defaultLanguage": "no" },
+  "availableMarkets": ["NO", "SE", "DK"]
+}
+```
 
-Everything else — components, engagement flow, WebSocket — stays identical.
+All runtime configuration — theme, market availability, feature flags, commerce credentials — is delivered by the backend. No app update is needed to change any of these.
+
+---
+
+## Eliminated in v0.2.0
+
+| Before v0.2.0 | v0.2.0+ |
+|---------------|---------|
+| `vio-config.json` in bundle | ✅ Removed |
+| `campaignApiKey` (duplicate of `apiKey`) | ✅ Removed |
+| `autoDiscover: true` flag | ✅ Always on |
+| `ConfigurationLoader.loadConfiguration()` | ✅ Replaced by `VioSDK.configure()` |
+| `setBroadcastContext(BroadcastContext(...))` | ✅ Simplified to `VioSDK.setContent(id:)` |
+
+---
+
+## Migrating from v0.1.x
+
+Three changes, everything else is identical:
+
+**1. Remove `vio-config.json`** from Copy Bundle Resources.
+
+**2. Replace initialization:**
+
+```swift
+// Before
+ConfigurationLoader.loadConfiguration(userCountryCode: "NO")
+
+// After
+VioSDK.configure(apiKey: "your-api-key")
+```
+
+**3. Replace broadcast context:**
+
+```swift
+// Before
+await CampaignManager.shared.setBroadcastContext(
+    BroadcastContext(broadcastId: contentId)
+)
+
+// After
+await VioSDK.setContent(id: contentId)
+```
+
+Components, engagement flow, WebSocket, and all UI remain unchanged.
 
 ---
 
 ## Next Steps
 
-- [Configuration](/swift/configuration) — Current `vio-config.json` reference
-- [Campaign Lifecycle](/swift/guides/campaign-lifecycle) — Current broadcast and WebSocket flow
+- [User Identification](/swift/guides/user-identification) — Pass user context for analytics and purchase attribution
+- [Analytics & Tracking](/swift/guides/analytics) — Engagement events and sponsor performance
+- [Campaign Lifecycle](/swift/guides/campaign-lifecycle) — Broadcast and WebSocket flow
 - [Changelog](/swift/changelog) — Release history

@@ -28,20 +28,17 @@ The central manager. Use as a singleton via `CampaignManager.shared`.
 import VioCore
 
 // Connect to a broadcast (call when user opens a stream)
-let context = BroadcastContext(
-    broadcastId: "real-madrid-vs-barcelona-2025-01-24"  // matches externalId in Dashboard
-)
-await CampaignManager.shared.setBroadcastContext(context)
+await VioSDK.setContent(id: "real-madrid-vs-barcelona-2025-01-24")
 
 // Read state
 let campaign = CampaignManager.shared.currentCampaign
 let isConnected = CampaignManager.shared.isConnected
 
 // Disconnect (call when user exits the stream)
-CampaignManager.shared.disconnect()
+VioSDK.disconnect()
 ```
 
-### What `setBroadcastContext` does
+### What `setContent(id:)` does
 
 1. Clears components from the previous broadcast
 2. Calls the backend to find the active campaign for this `broadcastId` (matches `externalId` in Dashboard)
@@ -123,7 +120,7 @@ let avatarUrl = sponsor?.avatarUrl
 | `VioCore` | `VioConfiguration`, `CampaignManager`, `ConfigurationLoader` | Always |
 | `VioEngagementSystem` | `EngagementManager`, `CampaignWebSocketManager` | Live engagement |
 | `VioEngagementUI` | `VioEngagementPollOverlay`, `VioEngagementProductOverlay` | Engagement UI |
-| `ViaCastingUI` | `TimelinePollCard`, `SponsorBadge`, `ContestCard` | Sports casting UI |
+| `VioCastingUI` | `TimelinePollCard`, `SponsorBadge`, `ContestCard` | Sports casting UI |
 | `VioUI` | `ProductService`, `CartManager`, `VioProductCard` | Shoppable products |
 | `VioDesignSystem` | `VioColors`, `VioSpacing`, `VioTypography` | Custom UI |
 
@@ -133,15 +130,15 @@ let avatarUrl = sponsor?.avatarUrl
 @main
 struct MyApp: App {
     init() {
-        // 1. Load vio-config.json → applies theme, sets up campaign URLs and API key
-        ConfigurationLoader.loadConfiguration(userCountryCode: "NO")
-        // 2. CampaignManager initializes (autoDiscover mode — waits for setBroadcastContext)
+        // 1. Configure with API key — fetches runtime config from backend
+        VioSDK.configure(apiKey: "your-api-key")
+        // 2. CampaignManager initializes — waits for setContent(id:)
     }
 }
 
 // Later, when user opens a stream:
-// 3. setBroadcastContext → discoverCampaigns → WebSocket connects → polls/contests arrive
-await CampaignManager.shared.setBroadcastContext(context)
+// 3. setContent → discoverCampaigns → WebSocket connects → polls/contests arrive
+await VioSDK.setContent(id: "real-madrid-vs-mancity-2026-03-11")
 ```
 
 ## Market Availability
@@ -173,4 +170,5 @@ VStack(spacing: VioSpacing.md) {
 
 - [Components](/swift/components) — Full component reference
 - [API Reference](/swift/api-reference) — Models and service APIs
-- [Configuration](/swift/configuration) — `vio-config.json` options
+- [User Identification](/swift/guides/user-identification) — Per-user analytics and attribution
+- [Zero-Config SDK](/swift/guides/zero-config) — Initialization reference
