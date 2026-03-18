@@ -8,44 +8,45 @@ In your app-level `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.github.reachudevteam:reachu-kotlin-sdk:1.0.1")
+    implementation("live.vio:vio-kotlin-sdk:1.0.0-alpha")
 }
 ```
 
-## 2. Configure the SDK
+## 2. Initialize at Startup
 
-In your `Application` class, initialize the SDK before any UI is displayed:
+In your `Application` class, initialize the SDK:
 
 ```kotlin
 import android.app.Application
-import io.reachu.VioCore.configuration.VioConfiguration
+import live.vio.sdk.VioSDK
 
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Configure with your API credentials
-        VioConfiguration.configure(
-            apiKey = "your-api-key",
-            environment = VioEnvironment.PRODUCTION
+        // Zero-config: initialize with just your API key
+        VioSDK.configure(
+            context = this,
+            apiKey = "your-api-key"
         )
     }
 }
 ```
 
-Register it in your `AndroidManifest.xml`:
+## 3. Connect to a Broadcast
 
-```xml
-<application
-    android:name=".MyApp"
-    ...>
+Call `VioSDK.setContent(id)` when the user opens a stream. The `id` is the `externalId` of the broadcast configured in the Dashboard:
+
+```kotlin
+// When the user opens a stream
+VioSDK.setContent(contentId = "your-broadcast-id")
 ```
 
-## 3. Add a Product Card
+## 4. Add a Product Card
 
 ```kotlin
 import androidx.compose.runtime.Composable
-import io.reachu.VioUI.Components.VioProductCarousel
+import live.vio.VioUI.Components.VioProductCarousel
 
 @Composable
 fun ProductListScreen() {

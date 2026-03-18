@@ -7,23 +7,23 @@ Add the Vio Kotlin SDK to your Android project using Gradle.
 | Platform | Minimum |
 |----------|---------|
 | Android API | 24+ (Android 7.0) |
-| Kotlin | 1.9+ |
-| Jetpack Compose BOM | 2024.09.01+ |
+| Kotlin | 1.9.0+ |
+| Jetpack Compose | 1.5.14+ |
 | Android Studio | Hedgehog (2023.1.1)+ |
 
 ## Gradle
 
-The SDK is published on **Maven Central** as `live.vio:vio-kotlin-sdk`.
+The SDK is published as `live.vio:vio-kotlin-sdk`.
 
 ### `build.gradle.kts` (Kotlin DSL)
 
 ```kotlin
 dependencies {
-    implementation("live.vio:vio-kotlin-sdk:1.0.1")
+    implementation("live.vio:vio-kotlin-sdk:1.0.0-alpha")
 }
 ```
 
-Make sure `mavenCentral()` is in your repository list:
+Make sure `mavenCentral()` or your custom repository is in your list:
 
 ```kotlin
 repositories {
@@ -36,7 +36,7 @@ repositories {
 
 ```groovy
 dependencies {
-    implementation "live.vio:vio-kotlin-sdk:1.0.1"
+    implementation "live.vio:vio-kotlin-sdk:1.0.0-alpha"
 }
 ```
 

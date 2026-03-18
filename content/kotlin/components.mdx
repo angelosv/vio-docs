@@ -9,7 +9,7 @@ The `VioUI` module provides a set of ready-to-use Jetpack Compose components for
 A single product card that displays a product image, name, price and an add-to-cart button.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioProductCard
+import live.vio.VioUI.Components.VioProductCard
 
 VioProductCard(
     product = product,
@@ -27,7 +27,7 @@ VioProductCard(
 A horizontally scrollable carousel of product cards. Fetches products automatically from a channel.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioProductCarousel
+import live.vio.VioUI.Components.VioProductCarousel
 
 VioProductCarousel(
     channelId = "your-channel-id",
@@ -42,7 +42,7 @@ VioProductCarousel(
 A horizontal product slider with optional pagination indicators.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioProductSlider
+import live.vio.VioUI.Components.VioProductSlider
 
 VioProductSlider(
     channelId = "your-channel-id",
@@ -55,7 +55,7 @@ VioProductSlider(
 A full-width product banner component, ideal for hero sections.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioProductBanner
+import live.vio.VioUI.Components.VioProductBanner
 
 VioProductBanner(
     channelId = "your-channel-id",
@@ -69,7 +69,7 @@ VioProductBanner(
 A full product grid store view with cart support.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioProductStore
+import live.vio.VioUI.Components.VioProductStore
 
 VioProductStore(
     channelId = "your-channel-id"
@@ -83,7 +83,7 @@ VioProductStore(
 A component that allows the user to select their shipping market.
 
 ```kotlin
-import io.reachu.VioUI.Components.compose.market.VioMarketSelector
+import live.vio.VioUI.Components.compose.market.VioMarketSelector
 
 VioMarketSelector(
     cartManager = cartManager,
@@ -99,7 +99,7 @@ VioMarketSelector(
 A floating button showing the current number of items in the cart.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioFloatingCartIndicator
+import live.vio.VioUI.Components.VioFloatingCartIndicator
 
 VioFloatingCartIndicator(
     onClick = {
@@ -113,7 +113,7 @@ VioFloatingCartIndicator(
 Manages the full checkout flow as an overlay/modal.
 
 ```kotlin
-import io.reachu.VioUI.VioCheckoutOverlay
+import live.vio.VioUI.VioCheckoutOverlay
 
 VioCheckoutOverlay(
     cartManager = cartManager,
@@ -123,12 +123,34 @@ VioCheckoutOverlay(
 )
 ```
 
+### VioGooglePayManager
+
+Handles the integration with Google Pay for seamless checkout.
+
+```kotlin
+import live.vio.VioCore.managers.VioGooglePayManager
+
+// Check availability
+VioGooglePayManager.isGooglePayAvailable(activity) { isAvailable ->
+    // Update UI
+}
+
+// Request payment
+val request = VioGooglePayManager.createPaymentDataRequest(
+    gateway = "stripe",
+    gatewayMerchantId = "pk_test_...",
+    price = "10.00",
+    currency = "USD"
+)
+VioGooglePayManager.launchGooglePay(activity, request)
+```
+
 ### VioProductDetailOverlay
 
 Displays full product details (images, description, variants) in a bottom sheet overlay.
 
 ```kotlin
-import io.reachu.VioUI.Components.VioProductDetailOverlay
+import live.vio.VioUI.Components.VioProductDetailOverlay
 
 VioProductDetailOverlay(
     product = selectedProduct,
@@ -144,7 +166,7 @@ VioProductDetailOverlay(
 Displays a promotional offer banner with countdown timer or message dynamically.
 
 ```kotlin
-import io.reachu.VioUI.Components.compose.offers.VioOfferBannerDynamic
+import live.vio.VioUI.Components.compose.offers.VioOfferBannerDynamic
 
 VioOfferBannerDynamic(
     channelId = "your-channel-id"
@@ -160,7 +182,7 @@ These components are part of the `VioEngagementUI` module.
 Displays interactive polls during a live broadcast.
 
 ```kotlin
-import io.reachu.VioEngagementUI.Components.VioEngagementPollCard
+import live.vio.VioEngagementUI.Components.VioEngagementPollCard
 
 VioEngagementPollCard(
     poll = currentPoll,
@@ -175,10 +197,26 @@ VioEngagementPollCard(
 Displays contest cards during a live event.
 
 ```kotlin
-import io.reachu.VioEngagementUI.Components.VioEngagementContestCard
+import live.vio.VioEngagementUI.Components.VioEngagementContestCard
 
 VioEngagementContestCard(
     contest = currentContest
+)
+```
+
+### VioSponsorMomentCard
+
+A contextual card triggered by "Sponsor Moments" to show promotional content, products, or links.
+
+```kotlin
+import live.vio.VioEngagementUI.Components.VioSponsorMomentCard
+
+VioSponsorMomentCard(
+    sponsorSlot = currentSponsorSlot,
+    onDismiss = { /* Hide card */ },
+    onCtaClick = { type ->
+        // Handle interaction based on type (lead, link, poll_cta, etc.)
+    }
 )
 ```
 
@@ -187,8 +225,8 @@ VioEngagementContestCard(
 Displays product interaction cards during a live broadcast.
 
 ```kotlin
-import io.reachu.VioEngagementUI.Components.VioEngagementProductCard
-import io.reachu.VioEngagementUI.Components.VioEngagementProductGridCard
+import live.vio.VioEngagementUI.Components.VioEngagementProductCard
+import live.vio.VioEngagementUI.Components.VioEngagementProductGridCard
 
 VioEngagementProductCard(
     product = currentProduct,

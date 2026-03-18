@@ -1,3 +1,17 @@
 # Changelog
 
-Content coming soon...
+## March 2026
+
+### Features
+- **Zero-Config Initialization**: Added `VioSDK.configure(context, apiKey)` for simplified, faster SDK setup.
+- **Google Pay Integration**: Introduced `VioGooglePayManager` to handle Google Pay payments and checkout flows.
+- **Sponsor Moments**: New `VioSponsorMomentCard` component and WebSocket-based triggers for real-time promotions.
+- **WebSocket Parity**: Achieved full alignment with the Swift SDK's real-time synchronization and race condition logic.
+
+### Breaking Changes
+- **Namespace Migration**: All modules moved from `io.reachu` / `io.github.reachudevteam` to `live.vio`. Update your imports to `live.vio.*`.
+- **Initialization**: `VioConfiguration.configure()` is deprecated in favor of `VioSDK.configure()`.
+
+### Improvements
+- Enhanced `CampaignManager` to better handle match-state synchronization across WebSocket reconnections.
+- Updated documentation with new components and integration guides.

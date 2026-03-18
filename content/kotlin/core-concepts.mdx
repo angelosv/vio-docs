@@ -15,17 +15,19 @@ VioLiveShow      ← Live streaming models and managers
 VioLiveUI        ← Live streaming Compose components
 ```
 
-## Configuration Singleton
+## Configuration & VioSDK
 
-`VioConfiguration` is a singleton that holds the entire SDK state using Kotlin's `StateFlow`. Call `configure()` once — typically in `Application.onCreate()` — before rendering any Vio component.
+`VioSDK` is the primary entry point for the SDK. It simplifies synchronization between local configuration and remote settings fetched from the Vio Dashboard.
 
 ```kotlin
-// Initialize once
-VioConfiguration.configure(apiKey = "...", environment = VioEnvironment.PRODUCTION)
+// Initialize once in Application.onCreate
+VioSDK.configure(context = this, apiKey = "...")
 
-// Read state reactively
-val config = VioConfiguration.shared.state.value
+// Set content context (e.g. broadcast ID)
+VioSDK.setContent(contentId = "match-123")
 ```
+
+The SDK uses a single-source-of-truth pattern where `CampaignManager` coordinates all real-time interactions based on the active campaign discovered for the current content.
 
 ## Reactive State with StateFlow
 
@@ -58,11 +60,25 @@ The SDK supports three environments controlled by `VioEnvironment`:
 
 | Environment | Base URL |
 |-------------|----------|
-| `DEVELOPMENT` | `https://graph-ql-dev.vio.live` |
-| `SANDBOX` | `https://graph-ql-dev.vio.live` |
-| `PRODUCTION` | `https://graph-ql.vio.live` |
+| `DEVELOPMENT` | `https://api-dev.vio.live` |
+| `SANDBOX` | `https://api-dev.vio.live` |
+| `PRODUCTION` | `https://api.vio.live` |
 
 The `graphQLUrl` is automatically derived from the base URL.
+
+## WebSocket & Real-time Parity
+
+The Kotlin SDK maintains full parity with the Swift SDK's WebSocket implementation. This ensures:
+- **Instant Synchronization**: Polls, contests, and sponsor moments appear in real-time.
+- **Context Awareness**: The connection automatically resyncs when calling `setContent(id)` to stay in sync with the current broadcast.
+- **Race Condition Handling**: Internal logic handles late-arriving messages and ensures the UI always reflects the current server state.
+
+## Sponsor Moments
+
+Sponsor Moments are real-time triggers that control the visibility of UI components like `VioSponsorMomentCard`. When a moment is triggered via WebSocket:
+1. `CampaignManager` receives the event.
+2. The relevant component state is updated.
+3. The UI reactively shows or hides the promotional content.
 
 ## Error Handling
 

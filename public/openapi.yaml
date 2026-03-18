@@ -44,6 +44,10 @@ tags:
     description: Event tracking and WebSocket event triggers
   - name: Dashboard - Objects
     description: File upload and object storage management
+  - name: Dashboard - Lineups
+    description: Lineup retrieval and lineup_show WebSocket trigger endpoints
+  - name: SDK - Lineup
+    description: Starting XI lineup retrieval for SDK clients (API Key auth)
   - name: Analytics
     description: Analytics and reporting endpoints (planned)
 
@@ -960,6 +964,40 @@ components:
         message:
           type: string
 
+    LineupPlayer:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Sportmonks player ID
+        name:
+          type: string
+          example: "Marc-André ter Stegen"
+        jerseyNumber:
+          type: integer
+          nullable: true
+          example: 1
+        position:
+          type: string
+          enum: [goalkeeper, defender, midfielder, attacker]
+          example: goalkeeper
+
+    LineupTeam:
+      type: object
+      properties:
+        teamName:
+          type: string
+          nullable: true
+          example: "FC Barcelona"
+        formation:
+          type: string
+          nullable: true
+          example: "4-3-3"
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineupPlayer'
+
 paths:
   # ============================================================
   # Admin API - Broadcasts
@@ -1830,10 +1868,17 @@ paths:
     get:
       tags:
         - SDK - Discovery
-      summary: Get SDK config
+      summary: Get SDK config (zero-config)
       description: >-
-        Retrieves the SDK configuration for a specific campaign.
-        Includes components, UI config, feature flags, and engagement settings.
+        Zero-config SDK bootstrap endpoint for the Swift SDK. Only requires the
+        `apiKey` — no `campaignId` needed. The server auto-detects the active
+        campaign for the client app (first campaign with `status=active` and
+        dates valid today; falls back to the most recent campaign).
+
+        Returns a flat, SDK-friendly config object with endpoint URLs, feature
+        flags, Commerce integration key (sourced from the linked sponsor's
+        `commerceApiKey`, falling back to `campaign.reachuApiKey`), branding
+        theme, and target markets.
       security:
         - ApiKeyQuery: []
       parameters:
@@ -1842,47 +1887,101 @@ paths:
           required: true
           schema:
             type: string
-          description: API key for authentication
-        - name: campaignId
-          in: query
-          required: true
-          schema:
-            type: integer
-          description: Campaign ID to get config for
+          description: Vio App API key (`client_apps.api_key`)
       responses:
         '200':
-          description: SDK configuration
+          description: SDK bootstrap configuration
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - clientApp
+                  - endpoints
+                  - features
+                  - commerce
+                  - theme
+                  - markets
                 properties:
-                  campaign:
-                    $ref: '#/components/schemas/Campaign'
-                  components:
+                  clientApp:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 17
+                      name:
+                        type: string
+                        example: Viaplay
+                      apiKey:
+                        type: string
+                        description: The Vio App API key for this client app
+                  endpoints:
+                    type: object
+                    properties:
+                      restBase:
+                        type: string
+                        example: https://api-dev.vio.live
+                        description: Base URL for all REST calls
+                      webSocketBase:
+                        type: string
+                        example: wss://api-dev.vio.live
+                        description: Base URL for WebSocket connections
+                      commerceGraphQL:
+                        type: string
+                        example: https://graph-ql-dev.vio.live/graphql
+                        description: Commerce GraphQL endpoint (external)
+                  features:
+                    type: object
+                    properties:
+                      engagement:
+                        type: boolean
+                        description: Polls, contests, and real-time engagement
+                      adPlacements:
+                        type: boolean
+                        description: Sponsor moments / ad slots
+                      commerce:
+                        type: boolean
+                        description: True if a Commerce API key is available
+                      lineup:
+                        type: boolean
+                        description: Team lineup delivery via WebSocket
+                  commerce:
+                    type: object
+                    nullable: true
+                    description: Present when a Commerce key is configured; null otherwise
+                    properties:
+                      apiKey:
+                        type: string
+                        description: Commerce module API key — sourced from `sponsors.commerceApiKey`, fallback to `campaigns.reachuApiKey`
+                      endpoint:
+                        type: string
+                        example: https://graph-ql-dev.vio.live/graphql
+                  theme:
+                    type: object
+                    properties:
+                      primaryColor:
+                        type: string
+                        nullable: true
+                        example: '#3d8b7a'
+                      accentColor:
+                        type: string
+                        nullable: true
+                  markets:
                     type: array
                     items:
-                      $ref: '#/components/schemas/CampaignComponent'
-                  featureFlags:
-                    $ref: '#/components/schemas/CampaignFeatureFlags'
-                  uiConfig:
-                    $ref: '#/components/schemas/CampaignUiConfig'
-                  engagementConfig:
-                    $ref: '#/components/schemas/CampaignEngagementConfig'
-        '400':
-          description: Missing required parameters
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                      type: string
+                    description: Target market country codes (ISO-3166-1 alpha-2)
+                    example:
+                      - NO
+                      - SE
         '401':
-          description: Invalid API key
+          description: Invalid or missing API key
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Campaign not found
+          description: No campaign found for this client app
           content:
             application/json:
               schema:
@@ -5716,6 +5815,175 @@ paths:
                 $ref: '#/components/schemas/Error'
               example:
                 message: "type and ids query parameters are required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================================
+  # Dashboard - Lineups
+  # ============================================================
+  /api/broadcasts/{broadcastId}/lineup:
+    get:
+      tags:
+        - Dashboard - Lineups
+      summary: Get broadcast lineup (dashboard)
+      description: >-
+        Returns the starting XI for home and away teams linked via `sportmonksFixtureId`.
+        Cached 30 min (`cacheType = 'lineup_{fixtureId}'`). Team IDs from `broadcasts.metadata.homeTeamId/awayTeamId`.
+        Returns `{ available: false }` when lineup not yet published (~60 min before kickoff).
+      parameters:
+        - name: broadcastId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lineup data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                  home:
+                    $ref: '#/components/schemas/LineupTeam'
+                  away:
+                    $ref: '#/components/schemas/LineupTeam'
+        '404':
+          description: Broadcast not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/broadcasts/{broadcastId}/send-lineup:
+    post:
+      tags:
+        - Dashboard - Lineups
+      summary: Send lineup_show WebSocket event
+      description: >-
+        Triggers a `lineup_show` WS event to all SDK clients on the campaign channel.
+        Requires `showLineup = true` and a linked `sportmonksFixtureId`.
+        `videoTimestamp = max(0, kickoffVideoTimestamp - 600)` (10 min lead time).
+      parameters:
+        - name: broadcastId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  event:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: lineup_show
+                      videoTimestamp:
+                        type: integer
+                        example: 1800
+                      kickoffVideoTimestamp:
+                        type: integer
+                        example: 2400
+                      broadcastId:
+                        type: string
+                      leadTimeSeconds:
+                        type: integer
+                        example: 600
+                      timestamp:
+                        type: string
+                        format: date-time
+        '400':
+          description: showLineup disabled or no fixture linked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+        '404':
+          description: Broadcast not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================================
+  # SDK - Lineup
+  # ============================================================
+  /v1/sdk/broadcasts/{broadcastId}/lineup:
+    get:
+      tags:
+        - SDK - Lineup
+      summary: Get lineup for SDK clients
+      description: >-
+        Starting XI for home/away teams. API key auth. Same data as dashboard lineup endpoint.
+        Cached 30 min. Returns `{ available: false }` when not yet published.
+      security:
+        - ApiKeyHeader: []
+        - ApiKeyQuery: []
+      parameters:
+        - name: broadcastId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lineup data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                  home:
+                    $ref: '#/components/schemas/LineupTeam'
+                  away:
+                    $ref: '#/components/schemas/LineupTeam'
+        '401':
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Broadcast not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal server error
           content:
