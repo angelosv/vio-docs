@@ -37,3 +37,17 @@ html.light {
   --vio-bg-docs-light: #ffffff;
   --vio-bg-card-light: #ffffff;
 }
+
+/**
+ * Commerce section isolation.
+ * Commerce is a `type: 'page'` section, but Nextra still bleeds the root-level
+ * folders (Index, Swift SDK, Kotlin SDK) into its sidebar. Hide them ONLY on
+ * Commerce routes — detected by the Commerce links being present in the sidebar,
+ * which only happens inside the Commerce section (they don't render on Swift /
+ * Kotlin routes). This leaves the existing SDK hierarchy untouched.
+ */
+.nextra-sidebar:has(a[href^="/commerce"]) li:has(a[href="/"]),
+.nextra-sidebar:has(a[href^="/commerce"]) li:has(a[href^="/swift"]),
+.nextra-sidebar:has(a[href^="/commerce"]) li:has(a[href^="/kotlin"]) {
+  display: none !important;
+}

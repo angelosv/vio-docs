@@ -1,0 +1,189 @@
+import { Steps, Callout } from 'nextra/components'
+
+# Connect WooCommerce to Vio
+
+Sell your WooCommerce catalogue through Vio in a few minutes — no code required. This guide
+covers installing the **Vio Sync for WooCommerce** plugin, connecting your store, syncing your
+products, and receiving orders back.
+
+<Callout type="info">
+**Who this is for** — WooCommerce store owners and partners who want their products available
+in Vio. You'll do everything from your WordPress admin and the Vio dashboard.
+</Callout>
+
+## Before you start
+
+Make sure you have:
+
+- A **WordPress site** with **WooCommerce** installed and active.
+- A **Vio account** with your **API key** — get it from the [Vio dashboard](https://vio.live).
+- At least one **published product** in your store (you need products to sync).
+
+## How it works
+
+Once you connect your store, Vio keeps your catalogue in sync and delivers your orders back:
+
+1. Your catalogue syncs to Vio — titles, prices, stock, variants and images.
+2. Your products become available in Vio's mobile apps and live-shopping channels.
+3. When a shopper places an order, it's delivered straight to your WooCommerce store.
+
+## Step 1 · Install the plugin
+
+<Steps>
+
+### Find the plugin
+
+In your WordPress admin, go to **Plugins → Add New** and search for **Vio Sync for
+WooCommerce**.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/woocommerce/01-search.png`
+<br />*Muestra:* la pantalla **Plugins → Añadir nuevo** de WordPress, con "Vio Sync for
+WooCommerce" en los resultados de búsqueda y el botón **Instalar ahora** visible.
+</Callout>
+
+### Install and activate
+
+Click **Install Now**, then **Activate**. A new **Vio** menu appears in your WordPress sidebar.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/woocommerce/02-activate.png`
+<br />*Muestra:* el plugin con el botón **Activar** (o la lista de plugins con "Vio Sync for
+WooCommerce" ya activo y el menú **Vio** en la barra lateral).
+</Callout>
+
+</Steps>
+
+## Step 2 · Get your Vio API key
+
+Log in to the [Vio dashboard](https://vio.live) and copy your **API key**.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/woocommerce/03-api-key.png`
+<br />*Muestra:* el panel de Vio en la sección de **API key**, con la key visible o el botón
+para copiarla.
+</Callout>
+
+<Callout type="warning">
+Keep your API key private — it links your store to your Vio account. Treat it like a password.
+</Callout>
+
+## Step 3 · Connect your store
+
+<Steps>
+
+### Open the Vio settings
+
+In WordPress, click the **Vio** menu to open the connection screen.
+
+### Enter your details
+
+- Paste your **API key**.
+- Choose your **environment** — **Production**, or **Staging** to test first.
+- Pick your **currency**.
+
+Then click **Connect**.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/woocommerce/04-connect.png`
+<br />*Muestra:* la pantalla **Vio → Settings** con el campo **API key**, los selectores de
+**Environment** y **Currency**, y el botón **Connect**.
+</Callout>
+
+### Approve the connection
+
+WooCommerce shows an authorization screen — click **Approve** to let Vio connect to your store.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/woocommerce/05-authorize.png`
+<br />*Muestra:* la pantalla de autorización de WooCommerce ("… would like to connect to your
+store") con el botón **Approve**.
+</Callout>
+
+</Steps>
+
+Once connected, the Vio screen shows **Connected**, with your account, a **Reachable** API
+status, and **Active** order webhooks.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/woocommerce/06-connected.png` — *(ya la tenemos)*
+<br />*Muestra:* la pantalla de configuración de Vio en estado **Connected** — panel de
+Connection (Account · Environment · API health *Reachable* · Order webhooks *Active* · API key
+*Valid*) y el resumen de Sync.
+</Callout>
+
+## Step 4 · Sync your products
+
+On the **Vio** screen, click **Sync all** to push your whole catalogue to Vio. You can also
+sync selected products from **Products → All Products** using the **Sync** bulk action.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/woocommerce/07-sync-progress.png` — *(ya la tenemos)*
+<br />*Muestra:* el modal de progreso de sincronización — la barra avanzando y los productos
+con su tilde a medida que se sincronizan.
+</Callout>
+
+Each synced product shows a green **✓ Synced** status in the **Vio** column of your product
+list.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/woocommerce/08-synced-column.png` — *(ya la tenemos)*
+<br />*Muestra:* la lista de productos de WooCommerce con la columna **Vio** mostrando **✓
+Synced** en verde en cada fila, y el dropdown de **Bulk actions** (Sync / Unsync / Delete from
+Vio).
+</Callout>
+
+<Callout type="info" emoji="🎥">
+**Video** · `commerce/woocommerce/sync-demo.mp4`
+<br />*Muestra:* el flujo de sincronización en vivo — clic en **Sync all**, la barra de
+progreso, y los productos pasando a **✓ Synced**. Duración ~20–30 s.
+</Callout>
+
+**What syncs:** title, description, price, stock, SKU, barcode, variants and attributes, and
+image URLs. When you edit a product in WooCommerce, it re-syncs automatically on save.
+
+## Step 5 · Receiving orders
+
+Orders placed through Vio are delivered to your WooCommerce store automatically — they appear
+in **WooCommerce → Orders** like any other order. There's no extra setup: the plugin registers
+the order webhooks for you during connection.
+
+## Managing your catalogue
+
+From **Products → All Products**, select products and use the **Bulk actions**:
+
+| Action | What it does |
+|---|---|
+| **Sync** | Push the selected products to Vio. |
+| **Unsync** | Remove the link to Vio, but keep the product in your store. |
+| **Delete from Vio** | Remove the product from Vio. |
+
+The **Vio** column shows each product's status at a glance, and products you edit re-sync
+automatically on save.
+
+## Disconnecting
+
+To disconnect, open the **Vio** menu and click **Disconnect**. This removes the API key, the
+WooCommerce REST keys and the order webhooks from your store. You can optionally also delete the
+products Vio had synced.
+
+## Troubleshooting
+
+<Callout type="warning">
+**"Not connected" or the key is rejected** — double-check the API key and that you selected the
+right environment (Production vs Staging). Use **Re-check** on the Vio screen.
+</Callout>
+
+<Callout type="warning">
+**Products don't sync** — make sure they're **Published** (drafts don't sync) and that your
+store shows **Connected**. Then run **Sync all** again.
+</Callout>
+
+<Callout type="warning">
+**Orders don't arrive** — confirm **Order webhooks** show **Active** on the Vio screen. If they
+don't, disconnect and reconnect.
+</Callout>
+
+## Need help?
+
+Contact the Vio team at [vio.live](https://vio.live) — we're happy to help you get set up.

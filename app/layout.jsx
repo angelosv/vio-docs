@@ -72,7 +72,7 @@ export default async function RootLayout({ children }) {
             defaultMenuCollapseLevel: 1,
             toggleButton: true,
           }}
-          toc={{ float: true, title: 'On This Page' }}
+          toc={{ float: false, title: 'On This Page' }}
           navigation={{ prev: true, next: true }}
         >
           {children}

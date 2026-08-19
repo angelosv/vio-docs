@@ -15,6 +15,10 @@ export default {
     type: 'page',
     href: '/swift/getting-started',
   },
+  commerce: {
+    title: 'Commerce',
+    type: 'page',
+  },
   about: {
     title: 'About',
     type: 'page',
