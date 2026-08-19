@@ -2,6 +2,8 @@ import { Steps, Callout } from 'nextra/components'
 
 # Connect WooCommerce to Vio
 
+![Vio Sync for WooCommerce — seamlessly connect your WooCommerce store and keep your products, inventory and orders in sync with Vio.](/commerce/woocommerce/banner.png)
+
 Sell your WooCommerce catalogue through Vio in a few minutes — no code required. This guide
 covers installing the **Vio Sync for WooCommerce** plugin, connecting your store, syncing your
 products, and receiving orders back.
@@ -16,7 +18,7 @@ in Vio. You'll do everything from your WordPress admin and the Vio dashboard.
 Make sure you have:
 
 - A **WordPress site** with **WooCommerce** installed and active.
-- A **Vio account** with your **API key** — get it from the [Vio dashboard](https://vio.live).
+- A **Vio API key** — your Vio contact provides this for your store.
 - At least one **published product** in your store (you need products to sync).
 
 ## How it works
@@ -38,8 +40,8 @@ WooCommerce**.
 
 <Callout type="info" emoji="🖼️">
 **Screenshot** · `commerce/woocommerce/01-search.png`
-<br />*Muestra:* la pantalla **Plugins → Añadir nuevo** de WordPress, con "Vio Sync for
-WooCommerce" en los resultados de búsqueda y el botón **Instalar ahora** visible.
+<br />*Shows:* the WordPress **Plugins → Add New** screen, with "Vio Sync for WooCommerce" in
+the search results and the **Install Now** button visible.
 </Callout>
 
 ### Install and activate
@@ -48,20 +50,19 @@ Click **Install Now**, then **Activate**. A new **Vio** menu appears in your Wor
 
 <Callout type="info" emoji="🖼️">
 **Screenshot** · `commerce/woocommerce/02-activate.png`
-<br />*Muestra:* el plugin con el botón **Activar** (o la lista de plugins con "Vio Sync for
-WooCommerce" ya activo y el menú **Vio** en la barra lateral).
+<br />*Shows:* the plugin with the **Activate** button (or the plugins list with "Vio Sync for
+WooCommerce" active and the **Vio** menu in the sidebar).
 </Callout>
 
 </Steps>
 
 ## Step 2 · Get your Vio API key
 
-Log in to the [Vio dashboard](https://vio.live) and copy your **API key**.
+Vio provides your API key. Your Vio contact sends you the key for your store — you don't
+need to create it yourself.
 
-<Callout type="info" emoji="🖼️">
-**Screenshot** · `commerce/woocommerce/03-api-key.png`
-<br />*Muestra:* el panel de Vio en la sección de **API key**, con la key visible o el botón
-para copiarla.
+<Callout type="info">
+Don't have your API key yet? [Contact the Vio team](https://vio.live) and we'll set you up.
 </Callout>
 
 <Callout type="warning">
@@ -86,8 +87,8 @@ Then click **Connect**.
 
 <Callout type="info" emoji="🖼️">
 **Screenshot** · `commerce/woocommerce/04-connect.png`
-<br />*Muestra:* la pantalla **Vio → Settings** con el campo **API key**, los selectores de
-**Environment** y **Currency**, y el botón **Connect**.
+<br />*Shows:* the **Vio → Settings** screen with the **API key** field, the **Environment**
+and **Currency** selectors, and the **Connect** button.
 </Callout>
 
 ### Approve the connection
@@ -96,8 +97,8 @@ WooCommerce shows an authorization screen — click **Approve** to let Vio conne
 
 <Callout type="info" emoji="🖼️">
 **Screenshot** · `commerce/woocommerce/05-authorize.png`
-<br />*Muestra:* la pantalla de autorización de WooCommerce ("… would like to connect to your
-store") con el botón **Approve**.
+<br />*Shows:* the WooCommerce authorization screen ("… would like to connect to your store")
+with the **Approve** button.
 </Callout>
 
 </Steps>
@@ -121,8 +122,8 @@ list.
 
 <Callout type="info" emoji="🎥">
 **Video** · `commerce/woocommerce/sync-demo.mp4`
-<br />*Muestra:* el flujo de sincronización en vivo — clic en **Sync all**, la barra de
-progreso, y los productos pasando a **✓ Synced**. Duración ~20–30 s.
+<br />*Shows:* the sync flow in action — clicking **Sync all**, the progress bar, and products
+turning to **✓ Synced**. ~20–30 s.
 </Callout>
 
 **What syncs:** title, description, price, stock, SKU, barcode, variants and attributes, and
