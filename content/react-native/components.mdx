@@ -1,0 +1,132 @@
+import { Callout } from 'nextra/components'
+
+# Components
+
+Ready-made React Native components, from `@vio-live/react-native-sdk/ui`. They are the fast path —
+and they are built so that taking one part of your design back never costs you the behaviour around
+it.
+
+## What ships today
+
+| Component | What it does |
+|---|---|
+| `VioProductCard` | Image, brand, title, price, discount badge, availability, add to cart |
+| `VioProductCarousel` | A horizontal row — from products you pass, or from a placement |
+| `VioCheckout` | Four steps: contact, shipping, payment, review |
+
+## Theming
+
+The tokens are one object, passed to the provider. Anything you leave out keeps its default.
+
+```tsx
+<VioProvider
+  theme={{
+    color: {
+      text: { primary: '#111' },
+      accent: { editorial: '#c14a3b' },
+    },
+    radius: { md: 8 },
+    density: 0.85,
+  }}
+>
+```
+
+| Group | What it covers |
+|---|---|
+| `color` | `text`, `accent`, `surface`, `border`, `status` |
+| `font` | `serif` for headlines, `sans` for everything else |
+| `size` · `weight` · `tracking` · `lineHeight` | Type scale |
+| `space` · `radius` | Spacing and corners |
+| `density` | Multiplies every spacing value |
+
+`density` is the quiet one: `0.75` gives a feed the compact layout it wants without you restating
+the whole scale.
+
+<Callout type="warning">
+  **Fonts resolve differently per platform.** `theme.font.serif` is one string, but iOS looks up a
+  **PostScript name** and Android a **file name**. Bundle the font on both and verify the name on
+  each — this is the first place a theme looks different between the two.
+</Callout>
+
+## Slot overrides
+
+Every component takes `render*` props. Each receives the data and the resolved theme, so an override
+can stay on-brand without reaching into the SDK. Return `null` to drop that part entirely.
+
+```tsx
+<VioProductCard
+  product={product}
+  renderPrice={({ price, theme }) => (
+    <Text style={{ color: theme.color.accent.editorial }}>From {price}</Text>
+  )}
+  renderAction={() => null}
+/>
+```
+
+| Component | Slots |
+|---|---|
+| `VioProductCard` | `renderImage` `renderTitle` `renderBrand` `renderPrice` `renderAction` |
+| `VioProductCarousel` | `renderHeader` `renderItem` `renderLoading` `renderEmpty` |
+| `VioCheckout` | `renderHeader` `renderStep` `renderFooter` |
+
+`renderStep` is the interesting one: replace a single checkout step with your own form and keep the
+step machine, the validation and the backend patching.
+
+## `VioProductCard`
+
+```tsx
+<VioProductCard
+  product={product}
+  layout="grid"          // or "list"
+  width={160}
+  onPress={(p) => navigate('Product', { id: p.id })}
+  onAddToCart={async (p) => { /* defaults to Vio.cart.addItem */ }}
+  addLabel="Legg i handlekurv"
+  soldOutLabel="Utsolgt"
+/>
+```
+
+Given only a product it is a pure rendering component — it works without a provider, which makes it
+easy to drop into a storybook.
+
+## `VioProductCarousel`
+
+Two modes, one component:
+
+```tsx
+<VioProductCarousel products={products} title="New in" />   {/* yours */}
+<VioProductCarousel locationId="home_top" />                {/* backend-driven */}
+```
+
+With `locationId` it resolves the placement bound to that slot, takes its title from the placement
+config, and follows it live. With `products` it never touches the network.
+
+```tsx
+<VioProductCarousel
+  locationId="home_top"
+  cardWidth={160}
+  cardProps={{ showAction: false }}
+  onProductPress={(p) => navigate('Product', { id: p.id })}
+/>
+```
+
+## `VioCheckout`
+
+```tsx
+<VioCheckout
+  cartId={cart?.cart_id}
+  successUrl="myapp://checkout/success"
+  cancelUrl="myapp://checkout/cancel"
+  onComplete={(checkout) => pay(checkout)}
+  onCancel={() => navigation.goBack()}
+  labels={{ contact: 'Kontakt', next: 'Fortsett', pay: 'Fullfør bestilling' }}
+/>
+```
+
+**It is a screen, not an overlay.** It renders into whatever container you give it, so a modal, a
+bottom sheet or a pushed screen are all your call — the SDK never owns your navigation.
+
+Every visible string goes through `labels`, so translating it does not mean forking it.
+
+Each step is saved to the backend as the user leaves it, which means an abandoned checkout still
+carries the address.

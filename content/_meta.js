@@ -5,6 +5,7 @@ export default {
   },
   swift: 'Swift SDK',
   kotlin: 'Kotlin SDK',
+  'react-native': 'React Native SDK',
   api: {
     title: 'API REST',
     type: 'page',

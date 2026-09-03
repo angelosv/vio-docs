@@ -1,0 +1,142 @@
+import { Callout } from 'nextra/components'
+
+# Android specifics
+
+Android resolves native dependencies through Gradle, and **Gradle only looks in the repositories
+your app declares**. iOS gets them from each package's podspec, so `pod install` is usually enough
+there. That difference is the source of everything on this page.
+
+## Minimums
+
+| | |
+|---|---|
+| `minSdkVersion` | 24 |
+| `compileSdkVersion` | 34 — **36 if you take card payments** |
+| Kotlin | 1.9 — **2.x if you take card payments** |
+| JDK | 17 |
+
+## Stripe
+
+```bash npm2yarn
+npm install @stripe/stripe-react-native
+```
+
+Stripe pins two app-wide versions. In `android/build.gradle`:
+
+```groovy
+buildscript {
+  ext {
+    compileSdkVersion = 36     // Stripe requires 36 or higher
+    targetSdkVersion  = 36
+    kotlinVersion     = "2.0.21"   // Stripe requires Kotlin 2.x
+  }
+}
+```
+
+<Callout type="warning">
+  **The Kotlin version is app-wide.** Bumping it to satisfy Stripe can break another library that
+  pinned an older one. Do this bump on its own, before wiring payments, so a failure has one
+  possible cause.
+</Callout>
+
+If `android-36` is not installed, add it through the Android Studio SDK Manager, or:
+
+```bash
+sdkmanager "platforms;android-36"
+```
+
+### Google Pay
+
+Google Pay is a wallet inside Stripe's sheet:
+
+```ts
+stripeAdapter({
+  merchantDisplayName: 'Nørs',
+  googlePay: { merchantCountryCode: 'NO', testEnv: __DEV__ },
+});
+```
+
+It needs Google Play Services on the device — most emulator images that include the Play Store are
+fine; plain AOSP images are not.
+
+## Klarna — the step with no iOS counterpart
+
+Klarna publishes its Android artifacts on **its own CDN, not Maven Central**, and React Native 59+
+does not honour third-party repositories declared by a library. So your app has to declare it.
+
+In `android/build.gradle`:
+
+```groovy
+allprojects {
+  repositories {
+    maven { url 'https://x.klarnacdn.net/mobile-sdk/' }
+  }
+}
+```
+
+<Callout type="warning">
+  Leave this out and the Android build fails at dependency resolution with an error naming Klarna
+  but not the missing repository — **while iOS keeps building perfectly**. That asymmetry is what
+  makes it read as a bug in your app rather than a setup step you skipped.
+</Callout>
+
+```bash npm2yarn
+npm install react-native-klarna-inapp-sdk
+```
+
+Klarna's return URL needs an intent filter on your activity, in `AndroidManifest.xml`:
+
+```xml
+<intent-filter>
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="myapp" android:host="klarna" />
+</intent-filter>
+```
+
+## Vipps MobilePay
+
+Nothing to install. Register the return URL the same way:
+
+```xml
+<intent-filter>
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="myapp" android:host="checkout" />
+</intent-filter>
+```
+
+Open the URL Vio returns with `Linking.openURL`. Never in a WebView — the app switch to Vipps only
+happens when Android handles the intent.
+
+## Number and date formatting
+
+Android does **not** ship the full ICU data by default, so `toLocaleString` quietly falls back to a
+different grouping than iOS. The SDK's `formatPrice` groups digits by hand for exactly this reason,
+and the same trap applies to any formatting you write yourself.
+
+If you need real locale formatting, either enable full ICU in your build or pass a `locale`
+explicitly and test it on a device.
+
+## Fonts
+
+Android resolves `theme.font.serif` by **file name** — drop `Tinos-Regular.ttf` into
+`android/app/src/main/assets/fonts/` and pass `'Tinos-Regular'`. iOS resolves the same value by
+PostScript name, which is often different. Verify on both.
+
+## Expo
+
+Everything except the native payment SDKs runs in **Expo Go**. From there:
+
+```bash
+npx expo prebuild
+npx expo run:android
+```
+
+## Cleartext traffic
+
+Vio's endpoints are HTTPS and WSS, so nothing special is needed. If you point the SDK at a local
+backend over plain HTTP during development, Android blocks it unless you allow cleartext for that
+host in your network security config.

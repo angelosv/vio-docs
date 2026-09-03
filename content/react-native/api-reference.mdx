@@ -1,0 +1,145 @@
+# API Reference
+
+## `Vio`
+
+The entry point. Everything hangs off it, and it is the same instance across every entry point of
+the package.
+
+| Member | What it is |
+|---|---|
+| `Vio.init(config)` | Configure. Once, at startup, synchronous |
+| `Vio.identify(externalUserId \| null)` | Attach your id for the signed-in user |
+| `Vio.whenReady(ms?)` | Resolves once configured, or `false` on timeout |
+| `Vio.bootstrap()` | Campaign, sponsors, endpoints. Cached for the session |
+| `Vio.campaign()` · `Vio.sponsors()` · `Vio.sellingSponsors()` · `Vio.sponsor(id)` | The Vio layer |
+| `Vio.components(campaignId?)` | Placements bound to the campaign |
+| `Vio.catalog` · `Vio.markets` · `Vio.discounts` | Stateless commerce functions |
+| `Vio.cart` · `Vio.checkout` · `Vio.payments` | Observable state managers |
+| `Vio.placements` | The slot registry |
+| `Vio.live` | The campaign socket |
+| `Vio.anonId()` | This device's id |
+| `Vio.setStorage(storage)` | Swap persistence after init |
+| `Vio.config` · `Vio.isConfigured` | The resolved configuration |
+
+## `Vio.catalog`
+
+```ts
+getProducts({ currency?, productIds?, skus?, categoryIds?, imageSize?, shippingCountryCode?, useCache? })
+getProduct({ productId | sku | barcode, currency?, imageSize? })
+getProductsByIds({ productIds, currency?, imageSize? })
+getProductsByCategoryId({ categoryId, ... })
+getCategories()
+getChannelMarkets()
+getTermsAndConditions() · getPurchaseConditions()
+```
+
+Every one takes an optional trailing `CommerceOptions` — `{ sponsorId }`, or an explicit
+`apiKey` / `graphQLBase`.
+
+## `Vio.cart`
+
+| | |
+|---|---|
+| `configure({ currency, shippingCountry, autoCreate, commerce })` | Idempotent; safe every render |
+| `ensure()` | Restore from storage or create. Deduplicated |
+| `addItem({ productId, quantity, variantId? })` | |
+| `updateItem({ cartItemId, quantity?, shippingId? })` | |
+| `removeItem({ cartItemId })` · `clear()` | |
+| `setShippingCountry(code)` · `refresh()` | |
+| `subscribe(fn)` · `getSnapshot()` | `{ cart, loading, error, initialized }` |
+| `cart` · `lineItems` · `itemCount` · `subtotal` · `shipping` · `total` | Derived reads |
+
+## `Vio.checkout`
+
+| | |
+|---|---|
+| `start(cartId)` | Creates the backend checkout. Idempotent |
+| `setEmail` · `setAddress` · `setPaymentMethod` · `setAcceptsTerms` | Local, no network |
+| `validate(step?)` | Per-field messages, without attempting the step |
+| `next()` | Validate → save → advance. `false` when it cannot |
+| `back()` · `goTo(step)` | |
+| `save()` · `submit()` | |
+| `subscribe(fn)` · `getSnapshot()` | `{ step, checkout, address, email, paymentMethod, paymentMethods, acceptsTerms, errors, loading, error }` |
+
+Steps: `contact` → `shipping` → `payment` → `review`.
+
+## `Vio.payments`
+
+| | |
+|---|---|
+| `configure({ returnUrl, email, countryCode, commerce })` | |
+| `registerAdapter(adapter)` · `adapterFor(method)` | |
+| `pay({ checkoutId, method, email? })` | An outcome, or an instruction to present |
+| `resume(checkoutId)` | After a redirect brings the app back |
+| `klarnaSession(checkoutId)` · `confirmKlarna({ checkoutId, authorizationToken })` | Klarna's native flow |
+| `subscribe(fn)` · `getSnapshot()` | `{ status, instruction, error }` |
+
+Instruction kinds: `native-stripe`, `native-klarna`, `redirect`, `html`.
+
+## `Vio.placements`
+
+| | |
+|---|---|
+| `register({ id, displayName? })` · `registerAll([...])` | Idempotent, additive |
+| `locations` · `location(id)` | Sorted by id |
+| `publish()` | Uploads. Resolves `null` rather than uploading an empty manifest |
+
+## `Vio.live`
+
+| | |
+|---|---|
+| `connect({ campaignId?, externalUserId?, modules? })` | Resolves `null` when no campaign is bound |
+| `on(type, handler)` · `onStatus(handler)` | Both return an unsubscribe |
+| `reconnect()` · `disconnect()` | |
+| `status` · `campaignId` | |
+
+Events: `campaign_started` · `campaign_ended` · `broadcast_status_changed` ·
+`placement_status_changed` · `placement_config_updated` · `placement_activation_swapped` ·
+`lineup_show` · `cart_intent`.
+
+## React
+
+```ts
+import {
+  VioProvider,
+  useVio, useCommerceOptions,
+  useProducts, useProduct, useCategories, useMarkets, useChannelMarkets,
+  useCart, useCheckout, usePayment,
+  useBootstrap, useSponsor, useComponents,
+  useLive, useLiveEvent,
+  useAsync,
+} from '@vio-live/react-native-sdk/react';
+```
+
+Query hooks return `{ data, loading, error, refetch }` and accept `{ skip }`.
+
+## UI
+
+```ts
+import {
+  VioProductCard, VioProductCarousel, VioCheckout,
+  useTheme, useThemedSpacing,
+  createTheme, defaultTheme,
+} from '@vio-live/react-native-sdk/ui';
+```
+
+## Helpers
+
+```ts
+import {
+  formatPrice, currencySymbol, priceAmount, compareAtAmount,
+  discountPercent, displayPrice, primaryImageUrl, isAvailable,
+  anonId, customerSessionId, externalUserId,
+  createSessionId, toError,
+} from '@vio-live/react-native-sdk/core';
+```
+
+## Errors
+
+| Class | Thrown by |
+|---|---|
+| `VioApiError` | The REST layer. Carries `status`, `code`, `endpoint` |
+| `CommerceError` | GraphQL. Carries `errors[]` and `status` |
+
+Query hooks and the state managers put errors in `error` rather than throwing. Payments return
+failures as outcomes.

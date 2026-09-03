@@ -1,0 +1,141 @@
+import { Steps } from 'nextra/components'
+
+# iOS specifics
+
+Everything on this page is your app's, not the SDK's. React Native cannot install a native
+dependency or edit `Info.plist` for you.
+
+## Minimums
+
+| | |
+|---|---|
+| Deployment target | **iOS 13.0** |
+| Xcode | Any Apple-supported version |
+| CocoaPods | Required for the native payment SDKs |
+
+Stripe requires iOS 13+. For iOS 12 you would need `@stripe/stripe-react-native@0.19.0`.
+
+## The good news
+
+**CocoaPods resolves native dependencies from each package's podspec.** For most of what you install,
+`pod install` is the whole story:
+
+```bash
+cd ios && pod install
+```
+
+No repository to declare, no version to pin. This is the main way iOS differs from Android here —
+see [Android specifics](/react-native/android) for what that platform asks for instead.
+
+## Stripe
+
+```bash npm2yarn
+npm install @stripe/stripe-react-native
+```
+
+```bash
+cd ios && pod install
+```
+
+### Apple Pay
+
+Apple Pay is a wallet inside Stripe's sheet, and needs Apple-side setup:
+
+<Steps>
+
+### Create a merchant identifier
+
+In the Apple Developer portal, under **Certificates, Identifiers & Profiles → Identifiers →
+Merchant IDs**.
+
+### Enable the capability
+
+In Xcode, select your target → **Signing & Capabilities** → **+ Capability** → **Apple Pay**, and
+tick your merchant id.
+
+### Pass the country to the adapter
+
+```ts
+stripeAdapter({
+  merchantDisplayName: 'Nørs',
+  applePay: { merchantCountryCode: 'NO' },
+});
+```
+
+</Steps>
+
+Apple Pay does not run in the simulator with real cards. Use a device for anything beyond layout.
+
+## Klarna
+
+```bash npm2yarn
+npm install react-native-klarna-inapp-sdk
+```
+
+```bash
+cd ios && pod install
+```
+
+Two things Android does **not** ask for:
+
+### A URL scheme
+
+Klarna returns to your app after a bank's own flow. Register a scheme in **Info → URL Types**, and
+pass it as `returnUrl`:
+
+```tsx
+<VioKlarnaView returnUrl="myapp://klarna" />
+```
+
+The return URL must include `://` after the scheme name.
+
+### Query schemes in `Info.plist`
+
+Klarna checks whether its app is installed, and iOS will not answer unless you declare it:
+
+```xml
+<key>LSApplicationQueriesSchemes</key>
+<array>
+  <string>klarna</string>
+  <string>klarnaconsent</string>
+</array>
+```
+
+Leave this out and the SDK silently falls back to the web flow.
+
+## Vipps MobilePay
+
+Nothing to install. Vipps recommends **universal links** over custom schemes, so prefer an
+associated domain:
+
+```xml
+<key>com.apple.developer.associated-domains</key>
+<array>
+  <string>applinks:yourapp.example.com</string>
+</array>
+```
+
+A custom URL type works too. Either way, open the URL Vio returns with `Linking.openURL` — never in
+a `WKWebView`, or the app switch never happens.
+
+## Fonts
+
+If you theme the SDK with your own font, iOS resolves it by **PostScript name** — which is often not
+the file name. Add the file to the target, list it under `UIAppFonts`, and pass the PostScript name:
+
+```tsx
+<VioProvider theme={{ font: { serif: 'Tinos-Regular' } }}>
+```
+
+Android resolves the same value from the **file name**. This is the usual reason a theme looks right
+on one platform and not the other.
+
+## Expo
+
+Everything except the native payment SDKs runs in **Expo Go**. Once you add Stripe or Klarna you
+need a development build:
+
+```bash
+npx expo prebuild
+npx expo run:ios
+```

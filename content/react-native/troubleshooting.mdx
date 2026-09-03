@@ -1,0 +1,125 @@
+import { Callout } from 'nextra/components'
+
+# Troubleshooting
+
+Real failures, in the order you are likely to meet them.
+
+## "Vio hooks must be used inside a `<VioProvider>`" — from inside a provider
+
+You are rendering two copies of the SDK. It happens when a bundler resolves `@vio-live/react-native-sdk/react` and `.../ui` to different copies — a duplicated install, or a monorepo with two `node_modules`.
+
+```bash
+npm ls @vio-live/react-native-sdk
+```
+
+One entry, one version. If you see two, dedupe them.
+
+## "[Vio] not configured. Call Vio.init(...)"
+
+Something read the configuration before the provider ran. The usual cause is reading `Vio.config` in the **same component** that renders `<VioProvider>` — React builds the children elements first, so `init` has not happened yet.
+
+```tsx
+// Throws: evaluated while App builds its children
+<VioProvider apiKey={KEY}>
+  <Text>{Vio.config.environment}</Text>
+</VioProvider>
+
+// Works: read it in a child
+const Readout = () => <Text>{Vio.config.environment}</Text>;
+```
+
+Or call `Vio.init()` at module scope in your entry file, before anything renders.
+
+## Every request returns 401
+
+Check the environment. A key issued for staging is not valid on production, and the two fail identically.
+
+```ts
+console.log(Vio.config.environment, Vio.config.apiBase);
+```
+
+Remember the middle environment is `testing`, not `staging`.
+
+## The catalog throws "Cannot return null for non-nullable field"
+
+The commerce backend returned a product with a null value in a field its schema declares non-nullable, and GraphQL fails the whole query rather than that one field. It is not something the SDK can work around.
+
+If it appears against a channel whose products look fine, try uncached:
+
+```ts
+await Vio.catalog.getProducts({ currency: 'NOK', useCache: false });
+```
+
+If uncached works and cached does not, the backend's product cache holds an incomplete row — report the channel to Vio support.
+
+## A carousel with a `locationId` renders nothing
+
+By design: a slot with no active placement renders nothing at all. Check, in order:
+
+1. Your app declared the slot — `Vio.placements.register({ id: 'home_top' })`, at module scope.
+2. The manifest reached the backend — it uploads on the first `bootstrap()`.
+3. An operator bound a placement to that slot in the dashboard.
+4. The campaign is active. `(await Vio.bootstrap()).campaign` carries `isActive` and its dates.
+
+```ts
+console.log(await Vio.components());   // [] means nothing is bound
+```
+
+## Live events stop arriving after the app was backgrounded
+
+The operating system closed the socket. The SDK cannot import React Native's `AppState` without becoming a React Native dependency, so your app owns that trigger:
+
+```tsx
+useEffect(() => {
+  const sub = AppState.addEventListener('change', (state) => {
+    if (state === 'active') Vio.live.reconnect();
+  });
+  return () => sub.remove();
+}, []);
+```
+
+## The Android build fails and iOS does not
+
+Almost always the Klarna Maven repository. Gradle only looks in repositories your app declares, and Klarna publishes to its own CDN:
+
+```groovy
+allprojects {
+  repositories {
+    maven { url 'https://x.klarnacdn.net/mobile-sdk/' }
+  }
+}
+```
+
+See [Android specifics](/react-native/android).
+
+## A payment method does nothing in Expo Go
+
+Native payment SDKs cannot load in Expo Go. You need a [development build](https://docs.expo.dev/develop/development-builds/introduction/):
+
+```bash
+npx expo prebuild && npx expo run:ios
+```
+
+Everything else — catalog, cart, components, the checkout form — runs in Expo Go.
+
+## Klarna authorises and the backend rejects the token
+
+Klarna required a second step. `onAuthorized` arrives with `finalizeRequired` and a null token; the usable one comes later through `onFinalized`. `VioKlarnaView` handles this; if you drive Klarna's SDK yourself, you must.
+
+## Vipps opens a web page instead of the app
+
+The URL was opened in a WebView, or modified. Open it with `Linking.openURL` exactly as returned — the app switch only happens when the operating system handles it.
+
+## Prices are grouped differently on Android
+
+Android does not ship the full ICU data, so `toLocaleString` falls back. The SDK's `formatPrice` groups by hand for that reason; if you format prices yourself, expect the difference and test on a device.
+
+## The theme font applies on one platform only
+
+iOS resolves a font by **PostScript name**, Android by **file name**. They are often different strings for the same file.
+
+<Callout type="info">
+  Turn on `debug` in `Vio.init({ debug: true })` and the SDK logs its resolved configuration — the
+  masked key, both base URLs, the socket host and the subscribed modules. That one line answers most
+  "which backend am I even talking to" questions.
+</Callout>
