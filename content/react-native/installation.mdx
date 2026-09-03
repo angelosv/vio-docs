@@ -1,0 +1,73 @@
+import { Callout } from 'nextra/components'
+
+# Installation
+
+## The package
+
+```bash npm2yarn
+npm install @vio-live/react-native-sdk
+```
+
+That is all you need for the headless core. `react` is the only required peer.
+
+## Entry points
+
+The package publishes several entries. Import from the one you need and the rest never reaches your
+bundle.
+
+| Import | What it is | Requires |
+|---|---|---|
+| `@vio-live/react-native-sdk` | The core, re-exported | `react` |
+| `.../core` | Same, explicit | `react` |
+| `.../react` | Provider and hooks | `react` |
+| `.../ui` | Ready-made components | `react-native` |
+| `.../payments/stripe` | Stripe adapter | `@stripe/stripe-react-native` |
+| `.../payments/klarna` | Klarna view | `react-native-klarna-inapp-sdk` |
+
+<Callout type="info">
+  Every native dependency is an **optional peer**. Install only the payment methods you accept —
+  the SDK does not pull them in, and it does not break when they are absent.
+</Callout>
+
+## If you use our components
+
+```bash npm2yarn
+npm install react-native
+```
+
+Already there in any React Native app. Also install `@react-native-async-storage/async-storage` if
+you want the cart to survive the app being closed — the SDK falls back to memory without it.
+
+## If you take payments
+
+Payments need native SDKs, and each one asks something different of each platform. The short
+version:
+
+| | iOS | Android |
+|---|---|---|
+| **Stripe** — cards, Apple Pay, Google Pay | iOS 13+, `pod install` | `compileSdk` 36, Kotlin 2.x |
+| **Klarna** | `pod install`, a URL scheme, two `Info.plist` entries | **a Maven repository you must add by hand** |
+| **Vipps MobilePay** | nothing | nothing |
+
+The Klarna row is the one that surprises people: Klarna publishes its Android artifacts on its own
+CDN rather than Maven Central, so the build only fails on Android and it reads like a bug in your
+app. Full steps in [iOS specifics](/react-native/ios) and [Android specifics](/react-native/android).
+
+<Callout type="warning">
+  Native payment SDKs do not run in **Expo Go**. If you are on Expo, you need a development build
+  before you can take a payment. Everything else — catalog, cart, the components, the whole checkout
+  form — runs in Expo Go.
+</Callout>
+
+## Verifying the install
+
+```ts
+import { Vio } from '@vio-live/react-native-sdk';
+
+Vio.init({ apiKey: 'your-app-key', environment: 'testing' });
+const { campaign, primarySponsor } = await Vio.bootstrap();
+
+console.log(campaign?.name, primarySponsor?.name);
+```
+
+If that prints your campaign, the app key and the network path are both good.

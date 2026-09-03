@@ -1,0 +1,166 @@
+import { Callout } from 'nextra/components'
+
+# Payments
+
+The SDK talks to Vio Commerce and hands you back either an **outcome** — a native sheet handled it
+end to end — or an **instruction** you present yourself.
+
+It does not bundle any payment SDK. Those are native modules: they need a rebuild, they rule out
+Expo Go, and forcing all of them on every app would be the opposite of modular. Install the ones you
+accept; each is an optional peer.
+
+## The methods
+
+| Method | Native SDK | What you get back |
+|---|---|---|
+| **Stripe** — cards, Apple Pay, Google Pay | `@stripe/stripe-react-native` | The PaymentSheet, presented by our adapter |
+| **Klarna** | `react-native-klarna-inapp-sdk` | `VioKlarnaView`, a component |
+| **Vipps MobilePay** | none needed | A URL to open |
+
+Your sponsor's enabled methods come from the bootstrap, so render what the backend says rather than
+a hardcoded list:
+
+```ts
+const { primarySponsor } = await Vio.bootstrap();
+primarySponsor.commerce.paymentMethods;   // ["klarna", "vipps", "apple_pay"]
+```
+
+## Stripe
+
+```bash npm2yarn
+npm install @stripe/stripe-react-native
+```
+
+```tsx
+import { StripeProvider } from '@stripe/stripe-react-native';
+import { stripeAdapter } from '@vio-live/react-native-sdk/payments/stripe';
+
+Vio.payments.registerAdapter(
+  stripeAdapter({
+    merchantDisplayName: 'Nørs',
+    applePay: { merchantCountryCode: 'NO' },
+    googlePay: { merchantCountryCode: 'NO' },
+  }),
+);
+```
+
+Wrap your tree in Stripe's own `<StripeProvider>` — the publishable key and the wallet
+configuration are Stripe's contract, not ours.
+
+Then:
+
+```ts
+const result = await Vio.payments.pay({ checkoutId, method: 'STRIPE' });
+// { status: 'completed' | 'cancelled' | 'failed' }
+```
+
+<Callout type="info">
+  **Apple Pay and Google Pay are Stripe.** The backend lists them alongside the processors, but they
+  are wallets inside Stripe's sheet — `apple_pay` routes to the Stripe adapter automatically.
+</Callout>
+
+Without the adapter registered, Stripe falls back to a hosted page you open yourself. Nothing is
+blocked on installing the native module — but Apple Pay and Google Pay only exist inside the sheet.
+
+## Klarna
+
+```bash npm2yarn
+npm install react-native-klarna-inapp-sdk
+```
+
+Klarna's SDK is a **view**, not a call, so it is a component rather than an adapter:
+
+```tsx
+import { VioKlarnaView } from '@vio-live/react-native-sdk/payments/klarna';
+
+const klarna = useRef(null);
+
+<VioKlarnaView
+  ref={klarna}
+  checkoutId={checkoutId}
+  returnUrl="myapp://klarna"
+  onCompleted={(outcome) => console.log(outcome.status)}
+/>
+
+<Button title="Pay" onPress={() => klarna.current?.authorize()} />
+```
+
+The component owns the whole loop — session, authorise, confirm with the backend, outcome. You own
+the pay button.
+
+<Callout type="warning">
+  Klarna can require a **second step** — a bank's own flow — and the token from the first callback
+  is not usable. `VioKlarnaView` waits for the finalised one. If you drive Klarna's SDK yourself,
+  handle `finalizeRequired` or the backend will reject your token.
+</Callout>
+
+Android needs a Maven repository added by hand. See [Android specifics](/react-native/android).
+
+## Vipps MobilePay
+
+No SDK. Vio returns a URL and you open it:
+
+```ts
+import { Linking } from 'react-native';
+
+const result = await Vio.payments.pay({ checkoutId, method: 'VIPPS' });
+if ('kind' in result && result.kind === 'redirect') {
+  await Linking.openURL(result.url);
+}
+```
+
+<Callout type="warning">
+  **Open it with the operating system, never in a WebView**, and never modify the URL. The app
+  switch to Vipps only happens when the OS handles it. This is Vipps' own requirement.
+</Callout>
+
+When the app comes back through your deep link:
+
+```ts
+const outcome = await Vio.payments.resume(checkoutId);
+```
+
+## Returning to your app
+
+Every redirect method needs a return URL, registered on both platforms:
+
+```ts
+Vio.payments.configure({ returnUrl: 'myapp://checkout/return' });
+```
+
+- **iOS** — a URL type in `Info.plist`, or an associated domain for universal links
+- **Android** — an intent filter on your activity
+
+## Outcomes, not exceptions
+
+A declined card and a dismissed sheet are outcomes to branch on, not errors to catch. `pay()` never
+throws for them:
+
+```ts
+switch (result.status) {
+  case 'completed': return showReceipt();
+  case 'cancelled': return;                 // the user closed the sheet
+  case 'failed':    return showError(result.error);
+}
+```
+
+<Callout type="info">
+  **The backend decides whether money moved, not the sheet.** A sheet can report success before the
+  webhook lands, so the SDK re-reads the checkout before reporting `completed`. If it cannot reach
+  the backend it still reports `completed` and lets the backend's own reconciliation win — failing
+  an order it merely could not verify would be the worse mistake.
+</Callout>
+
+## Writing your own adapter
+
+Any method can be handled by your own code:
+
+```ts
+Vio.payments.registerAdapter({
+  method: 'STRIPE',
+  present: async ({ instruction, checkoutId }) => {
+    // instruction.kind === 'native-stripe' → instruction.intent.client_secret
+    return { status: 'completed' };
+  },
+});
+```

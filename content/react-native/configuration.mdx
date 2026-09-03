@@ -1,0 +1,106 @@
+import { Callout } from 'nextra/components'
+
+# Configuration
+
+## `Vio.init()`
+
+Call it once, at app startup, before anything renders. It is synchronous and makes no network
+request — it resolves the endpoints for the environment and stores them.
+
+```ts
+Vio.init({
+  apiKey: 'your-app-key',
+  environment: 'production',
+  storage: AsyncStorage,
+});
+```
+
+| Option | Default | What it does |
+|---|---|---|
+| `apiKey` | — | **Required.** Your app key from the Vio dashboard |
+| `environment` | `development` | `development` · `testing` · `production` |
+| `storage` | in-memory | Where the cart and the device id survive a restart |
+| `modules` | `placements`, `cart_intent` | Which live events the socket subscribes to |
+| `apiBase` · `graphQLBase` · `wsBase` · `eventsBase` | per environment | Overrides, for tunnels and proxies |
+| `debug` | `__DEV__` | Logs the resolved configuration and the socket lifecycle |
+
+<Callout type="warning">
+  The middle environment is **`testing`**, not `staging`. The Swift SDK calls the same one
+  `sandbox`. All three point at the same backend.
+</Callout>
+
+### Endpoints resolve themselves
+
+`GET /v2/mobile/config` returns the endpoints the backend resolved for itself, and those win over
+the SDK's per-environment table — a development tunnel serves its own socket, and the commerce URL
+comes from the server's own configuration. An endpoint **you** pass explicitly always wins over
+both.
+
+## The provider
+
+If you use hooks or components, wrap your tree once. Passing `apiKey` here is shorthand for
+`Vio.init()`.
+
+```tsx
+<VioProvider
+  apiKey={KEY}
+  environment="production"
+  currency="NOK"
+  country="NO"
+  storage={AsyncStorage}
+  externalUserId={user?.id}
+  theme={{ color: { accent: { editorial: '#c14a3b' } } }}
+  sponsorId={3}
+>
+```
+
+`currency` and `country` become the defaults every hook uses. `sponsorId` scopes the subtree to one
+sponsor; nest providers to scope a screen to another.
+
+<Callout type="warning">
+  **Do not read `Vio.config` in the same component that renders `<VioProvider>`.** React builds the
+  children elements before the provider runs, so `init` has not happened yet and it throws. Read it
+  in a child, or call `Vio.init()` at module scope in your entry file.
+</Callout>
+
+## Identity
+
+Three ids, and only one of them is a person.
+
+| | What it is | Where it lives |
+|---|---|---|
+| `anonId` | This device. Random, minted by the SDK | Your storage |
+| `customerSessionId` | This cart | Your storage |
+| `externalUserId` | **This person, by your id for them** | Memory |
+
+```ts
+Vio.identify(user.id);   // after login
+Vio.identify(null);      // on logout
+```
+
+`identify()` is a call, not an `init` option, because a user logs in after startup. Pass **your**
+id for the user — a subscriber id, an account id. Never an email or a name.
+
+It matters beyond analytics: a cart intent sent from a TV is addressed by this id, so the TV and the
+phone only meet if both used the same one. Without it the app still receives campaign and placement
+events — just nothing addressed to a person.
+
+## Storage
+
+Pass `AsyncStorage` and the cart survives the app being closed. Without it the SDK falls back to
+memory and a new cart is created each launch.
+
+Any object with `getItem` / `setItem` / `removeItem` works, sync or async — which makes it easy to
+pass an encrypted store or a test double.
+
+## Waiting for a late init
+
+If a screen can mount before your own async startup has finished:
+
+```ts
+if (await Vio.whenReady(2000)) {
+  // configured
+}
+```
+
+Resolves `true` on init, `false` on timeout, and never throws.

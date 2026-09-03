@@ -1,0 +1,119 @@
+import { Callout, Steps } from 'nextra/components'
+
+# Core Concepts
+
+## Two layers, one key
+
+Every Vio SDK talks to two backends. Getting this wrong is the easiest mistake to make here, and the
+hardest to see.
+
+| Layer | Answers | Transport |
+|---|---|---|
+| **Vio** | *What to show* — campaign, sponsors, placements | REST |
+| **Vio live** | *What just changed* | WebSocket |
+| **Commerce** | *What to sell* — products, cart, checkout, payments | GraphQL |
+
+You hold **one** key: your app key. It identifies your app. It does not authorise commerce.
+
+`GET /v2/mobile/config` returns your campaign and its sponsors, and **each sponsor carries its own
+commerce key**. The SDK picks the right one for every call:
+
+```
+an explicit key  →  the named sponsor  →  the primary sponsor  →  your app key
+```
+
+The last hop keeps a single-brand app working before any campaign is bound. You never handle a
+sponsor key yourself — pass `{ sponsorId }` and the SDK resolves it.
+
+```ts
+await Vio.catalog.getProducts({ currency: 'NOK' }, { sponsorId: 3 });
+```
+
+## One cart, one sponsor
+
+A cart belongs to a commerce channel, and each sponsor is its own channel. So a cart is
+scoped to one sponsor — two sponsors would mean two carts, two checkouts and two payments.
+Multi-sponsor carts are not supported today.
+
+## Placements and the live layer
+
+A **placement** is a slot in your app that an operator can fill from the dashboard without you
+shipping a release.
+
+It works in three moves:
+
+<Steps>
+
+### Your app declares its slots
+
+```ts
+Vio.placements.register({ id: 'home_top', displayName: 'Home — Top' });
+```
+
+Declare them at **module scope**, next to your screens. The SDK uploads the set on the first
+bootstrap, and the dashboard lists exactly these — an operator can never bind a placement to a slot
+your app does not render.
+
+<Callout type="warning">
+  Never register from inside a component's effect. The manifest is *sync-semantic*: a slot missing
+  from an upload is deprecated server-side. A registry filled by whatever happened to mount would
+  deprecate every screen the user did not visit.
+</Callout>
+
+### An operator binds products to a slot
+
+From the Vio dashboard: pick the slot, pick the sponsor, pick the products.
+
+### Your screen renders it, and follows it
+
+```tsx
+<VioProductCarousel locationId="home_top" />
+```
+
+The component fetches what is bound, renders it, and keeps a socket open. When the operator pauses
+the placement or swaps its products, the screen follows in the same second. A slot with nothing
+active renders nothing — pausing a placement leaves no trace.
+
+</Steps>
+
+### The socket
+
+```
+wss://<host>/ws/:campaignId
+```
+
+It carries campaign lifecycle events, placement changes, and cart intents addressed to one user. It
+never carries the data itself: it says *what changed*, and the SDK refetches.
+
+```ts
+await Vio.live.connect();
+
+Vio.live.on('cart_intent', (event) => {
+  // Someone added this from a TV. Show it.
+});
+```
+
+Reconnects on its own with backoff. One socket for the app however many screens listen.
+
+<Callout type="info">
+  **The OS closes sockets in the background.** The SDK cannot import React Native's `AppState`
+  without becoming a React Native dependency, so your app owns that trigger: call
+  `Vio.live.reconnect()` when it returns to the foreground.
+</Callout>
+
+## State lives in the core
+
+`Vio.cart`, `Vio.checkout` and `Vio.payments` are observable managers, not hooks. They hold the
+lifecycle — restore the cart from storage, create one when absent, validate a checkout step, resolve
+a payment method — and they publish through `subscribe()` / `getSnapshot()`.
+
+The hooks are thin views over them. That is why a screen built on our components and a screen you
+built yourself share one cart, and why the headless path is not a downgrade: it is the same object.
+
+## Naming
+
+Public arguments are camelCase. The GraphQL variables underneath keep whatever the backend's schema
+says — `qty`, `skuStringList`, `product_id`. You will see both in the payloads; only the first is
+the SDK's contract.
+
+`Channel` is the backend's word for the commerce account behind a sponsor. You work in sponsors.

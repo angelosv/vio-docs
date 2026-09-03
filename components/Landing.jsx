@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { SiSwift, SiKotlin } from 'react-icons/si'
+import { SiSwift, SiKotlin, SiReact } from 'react-icons/si'
 import { FiGrid, FiPackage, FiSettings, FiVideo } from 'react-icons/fi'
 import { VioLogo } from './VioLogo'
 import { PhoneMockup } from './PhoneMockup'
@@ -62,6 +62,11 @@ export function Landing() {
             <SiKotlin className="vio-landing__sdk-icon" size={28} />
             <span>Kotlin SDK</span>
             <small>Android — Coming soon</small>
+          </Link>
+          <Link href="/react-native/getting-started" className="vio-landing__sdk-card">
+            <SiReact className="vio-landing__sdk-icon" size={28} />
+            <span>React Native SDK</span>
+            <small>iOS and Android, one codebase</small>
           </Link>
         </div>
       </section>

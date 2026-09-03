@@ -1,0 +1,136 @@
+import { Callout } from 'nextra/components'
+
+# Headless (core only)
+
+If you have a design system, this is your path. `@vio-live/react-native-sdk/core` has no React
+import and no `react-native` import — it is functions and observable stores. You bring every pixel.
+
+Nothing here is a downgrade. `Vio.cart` and `Vio.checkout` are the same objects our components use,
+so you inherit the whole lifecycle rather than reimplementing it.
+
+## Setup
+
+```ts
+import { Vio } from '@vio-live/react-native-sdk/core';
+
+Vio.init({ apiKey: KEY, environment: 'production', storage: AsyncStorage });
+```
+
+## Catalog
+
+```ts
+const products = await Vio.catalog.getProducts({ currency: 'NOK' });
+const one = await Vio.catalog.getProduct({ productId: 408895 });
+const categories = await Vio.catalog.getCategories();
+```
+
+### Presentation helpers
+
+Exported from the core on purpose. A product carries six price fields, and if your card picks a
+different one than ours, the two disagree on the same screen.
+
+```ts
+import {
+  displayPrice, formatPrice, compareAtAmount, discountPercent,
+  primaryImageUrl, isAvailable,
+} from '@vio-live/react-native-sdk/core';
+
+displayPrice(product);              // "1 200 kr"
+discountPercent(product.price);     // 25 | undefined
+primaryImageUrl(product);           // first usable image, defensively
+isAvailable(product);               // quantity, when the backend states it
+```
+
+<Callout type="info">
+  `formatPrice` groups digits by hand rather than calling `toLocaleString`, which needs full ICU
+  data that Android does not ship by default. Pass a `locale` explicitly if you want the platform's
+  own formatting and you know your build has it.
+</Callout>
+
+## Cart
+
+An observable store. Configure it once, subscribe from anything.
+
+```ts
+Vio.cart.configure({ currency: 'NOK', shippingCountry: 'NO' });
+
+const unsubscribe = Vio.cart.subscribe(() => {
+  const { cart, loading, error, initialized } = Vio.cart.getSnapshot();
+  render({ cart, loading, count: Vio.cart.itemCount, total: Vio.cart.total });
+});
+
+await Vio.cart.ensure();                                  // restore or create
+await Vio.cart.addItem({ productId: 408895, quantity: 1 });
+await Vio.cart.updateItem({ cartItemId: 'li_1', quantity: 2 });
+await Vio.cart.removeItem({ cartItemId: 'li_1' });
+await Vio.cart.setShippingCountry('SE');
+await Vio.cart.clear();
+```
+
+`initialized` separates "no cart yet" from "resolved, and there is no cart" — a real state when
+`autoCreate` is off, and the difference between a spinner and an empty state.
+
+`ensure()` is deduplicated: three screens calling it at once resolve one cart, not three.
+
+## Checkout
+
+```ts
+await Vio.checkout.start(cartId);
+
+Vio.checkout.setEmail('ada@example.com');
+Vio.checkout.setAddress({ first_name: 'Ada', /* … */ country_code: 'NO' });
+Vio.checkout.setPaymentMethod('Klarna');
+Vio.checkout.setAcceptsTerms(true);
+
+if (await Vio.checkout.next()) {
+  // saved, and moved to the next step
+}
+
+const ready = await Vio.checkout.submit();
+```
+
+The steps are `contact → shipping → payment → review`. `next()` validates the current one, saves it,
+and advances — returning `false` and filling `errors` when it cannot, so you never restate the rules
+in your screens:
+
+```ts
+const { step, errors, loading } = Vio.checkout.getSnapshot();
+// errors → { email: 'Enter a valid email address.', zip: 'Required.' }
+```
+
+`validate('review')` tells you whether a step would pass without attempting it — useful for
+enabling a button.
+
+## Payments
+
+See [Payments](/react-native/payments). The short version: `Vio.payments.pay()` gives you either an
+outcome, when a native sheet handled it, or an instruction for you to present.
+
+## Live events
+
+```ts
+await Vio.live.connect();
+
+const off = Vio.live.on('placement_config_updated', () => refetchYourSlot());
+Vio.live.onStatus((status) => console.log(status));
+```
+
+## With React, without our components
+
+`@vio-live/react-native-sdk/react` is hooks only — no `react-native` import, nothing rendered. Use
+it with your own components.
+
+```tsx
+import { VioProvider, useCart, useProducts, useCheckout } from '@vio-live/react-native-sdk/react';
+```
+
+| Hook | Returns |
+|---|---|
+| `useProducts` · `useProduct` | `{ data, loading, error, refetch }` |
+| `useCategories` · `useMarkets` | Same shape |
+| `useCart` | Cart state plus `addItem`, `updateItem`, `removeItem`, `clear` |
+| `useCheckout` | The checkout flow |
+| `usePayment` | `pay`, `resume`, `registerAdapter` |
+| `useBootstrap` · `useSponsor` · `useComponents` | The Vio layer |
+| `useLive` · `useLiveEvent` | The socket |
+| `useAsync` | The primitive the query hooks are built on |

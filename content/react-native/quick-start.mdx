@@ -1,0 +1,156 @@
+import { Tabs } from 'nextra/components'
+
+# Quick Start
+
+A screen that lists products and checks out, on both paths. Pick the tab that matches how much of
+the UI you want to own.
+
+<Tabs items={['With our components', 'Core only']}>
+<Tabs.Tab>
+
+### 1. Wrap your app
+
+```tsx
+import { VioProvider } from '@vio-live/react-native-sdk/react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function App() {
+  return (
+    <VioProvider
+      apiKey={process.env.EXPO_PUBLIC_VIO_API_KEY}
+      environment="testing"
+      currency="NOK"
+      country="NO"
+      storage={AsyncStorage}
+    >
+      <Shop />
+    </VioProvider>
+  );
+}
+```
+
+### 2. Render products
+
+```tsx
+import { VioProductCarousel } from '@vio-live/react-native-sdk/ui';
+import { useProducts } from '@vio-live/react-native-sdk/react';
+
+function Shop() {
+  const { data: products, loading } = useProducts({ currency: 'NOK' });
+
+  if (loading) return null;
+  return <VioProductCarousel products={products} title="New in" />;
+}
+```
+
+Tapping **Add to cart** already works — the card calls `Vio.cart` for you.
+
+### 3. Check out
+
+```tsx
+import { VioCheckout } from '@vio-live/react-native-sdk/ui';
+import { useCart } from '@vio-live/react-native-sdk/react';
+
+function Checkout({ onDone }) {
+  const { cart } = useCart();
+
+  return (
+    <VioCheckout
+      cartId={cart?.cart_id}
+      onComplete={(checkout) => onDone(checkout)}
+    />
+  );
+}
+```
+
+Four steps, validated, saved to the backend as the user leaves each one. It renders into whatever
+container you give it — a screen, a modal, a sheet — so your navigation stays yours.
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+### 1. Configure once
+
+```ts
+import { Vio } from '@vio-live/react-native-sdk/core';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+Vio.init({
+  apiKey: process.env.EXPO_PUBLIC_VIO_API_KEY,
+  environment: 'testing',
+  storage: AsyncStorage,
+});
+```
+
+Do this at module scope in your entry file. No React involved.
+
+### 2. Read the catalog
+
+```ts
+const products = await Vio.catalog.getProducts({ currency: 'NOK' });
+```
+
+Plain objects. Render them however you like — `formatPrice`, `displayPrice`,
+`discountPercent` and `primaryImageUrl` are exported so your card and ours agree on
+which of the price fields to show.
+
+### 3. Drive the cart
+
+`Vio.cart` is an observable store, not a hook. Subscribe from anything:
+
+```ts
+Vio.cart.configure({ currency: 'NOK', shippingCountry: 'NO' });
+
+const unsubscribe = Vio.cart.subscribe(() => {
+  const { cart, loading } = Vio.cart.getSnapshot();
+  render(cart, Vio.cart.itemCount, Vio.cart.total);
+});
+
+await Vio.cart.addItem({ productId: 408895, quantity: 1 });
+```
+
+### 4. Check out
+
+```ts
+await Vio.checkout.start(Vio.cart.cart.cart_id);
+
+Vio.checkout.setEmail('ada@example.com');
+Vio.checkout.setAddress({
+  first_name: 'Ada', last_name: 'Lovelace',
+  address1: 'Storgata 1', city: 'Oslo', zip: '0155', country_code: 'NO',
+});
+
+if (!(await Vio.checkout.next())) {
+  // Per-field messages, so you never restate the rules
+  console.log(Vio.checkout.getSnapshot().errors);
+}
+```
+
+`next()` returns `false` and fills `errors` instead of throwing. Your screens decide what to render;
+the SDK decides what is valid.
+
+</Tabs.Tab>
+</Tabs>
+
+## Backend-driven placements
+
+Once you declare the slots your layout exposes, an operator can bind products to them from the Vio
+dashboard and the app follows — no release.
+
+```ts
+// At module scope, next to your screens
+Vio.placements.register({ id: 'home_top', displayName: 'Home — Top' });
+```
+
+```tsx
+<VioProductCarousel locationId="home_top" />
+```
+
+That carousel resolves whatever is bound to `home_top`, renders it, and updates itself when the
+operator changes it. See [Core Concepts](/react-native/core-concepts#placements-and-the-live-layer).
+
+## Next steps
+
+- **[Configuration](/react-native/configuration)** — environments, identity, storage
+- **[Components](/react-native/components)** — theming and slot overrides
+- **[Payments](/react-native/payments)** — Stripe, Klarna and Vipps

@@ -1,0 +1,60 @@
+import { Callout } from 'nextra/components'
+
+# Getting Started
+
+The Vio React Native SDK brings Vio commerce to iOS and Android from a single codebase — the same
+products, campaigns and checkout the Swift and Kotlin SDKs serve, in JavaScript.
+
+## Two ways to use it
+
+The SDK is deliberately split so you can take as much or as little as you want. Most integrations
+start on the left and move right over time.
+
+| | **Our components** | **Core only** |
+|---|---|---|
+| You get | Product cards, carousels and a checkout that already work | Products, cart, checkout and payments as plain functions |
+| You write | Layout and theme tokens | Every pixel |
+| Import from | `@vio-live/react-native-sdk/ui` | `@vio-live/react-native-sdk/core` |
+| Needs `react-native` | Yes | No |
+| Best when | You want to be selling this sprint | You have a design system and it is not negotiable |
+
+You are not choosing once. Every component takes `render*` slots, so you can replace one part —
+the price, the button, an entire checkout step — and keep the behaviour around it. And the state
+managers (`Vio.cart`, `Vio.checkout`, `Vio.payments`) are the same objects either way, so a screen
+built on our components and a screen you built yourself share one cart.
+
+<Callout type="info">
+  **Nothing forces React on you either.** The core is plain functions and observable managers with
+  no React import at all. `@vio-live/react-native-sdk/react` — the provider and hooks — is a
+  separate entry you can skip.
+</Callout>
+
+## Prerequisites
+
+| | Minimum |
+|---|---|
+| React | 18.0 |
+| React Native | 0.71 (needed for `gap` in flex layouts) |
+| Node | 18 |
+| iOS | 13.0 |
+| Android | `compileSdk` 34 — **36 if you take card payments** |
+
+Expo and bare React Native are both supported. Expo Go is enough until you add a native payment
+SDK; from there you need a [development build](https://docs.expo.dev/develop/development-builds/introduction/).
+
+## What the SDK talks to
+
+Two backends, and knowing which is which will save you an afternoon:
+
+- **The Vio layer** answers *what to show* — your campaign, its sponsors, and which products are
+  bound to which slot in your app. REST, plus a WebSocket that tells you when any of it changes.
+- **The Commerce layer** answers *what to sell* — catalog, cart, checkout, payments. GraphQL.
+
+You hold one API key. It identifies your app, and the SDK uses it to fetch the sponsor keys that
+authorise commerce. You never handle the second kind. See [Core Concepts](/react-native/core-concepts).
+
+## Next steps
+
+1. **[Install the SDK](/react-native/installation)** — the package, and what each platform needs
+2. **[Quick Start](/react-native/quick-start)** — a working screen, both paths
+3. **[Configuration](/react-native/configuration)** — keys, environments, storage, identity
