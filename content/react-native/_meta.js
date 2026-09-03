@@ -10,4 +10,5 @@ export default {
   ios: 'iOS specifics',
   android: 'Android specifics',
   'api-reference': 'API Reference',
+  troubleshooting: 'Troubleshooting',
 }
