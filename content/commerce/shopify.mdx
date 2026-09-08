@@ -7,9 +7,9 @@ import { Steps, Callout } from 'nextra/components'
 <br />*Shows:* the Vio Sync for Shopify hero banner.
 </Callout>
 
-Sell your Shopify catalogue through Vio in a few minutes — no code required. This guide covers
-installing the **Vio Sync** app, connecting your store, syncing your products, and receiving
-orders back.
+Sell your Shopify catalogue through Vio in a few minutes — no code required. Vio Sync is a
+**sales channel**: it plugs into Shopify the same way Online Store or POS do. This guide covers
+installing the app, connecting your store, publishing your products, and receiving orders back.
 
 <Callout type="info">
 **Who this is for** — Shopify merchants who want their products available in Vio. You'll do
@@ -22,13 +22,14 @@ Make sure you have:
 
 - A **Shopify store** on any plan.
 - A **Vio API key** — sign up at your Vio dashboard to get one.
-- At least one **product** in your store (you need products to sync).
+- At least one **product** in your store (you need products to publish).
 
 ## How it works
 
 Once you connect your store, Vio keeps your catalogue in sync and delivers your orders back:
 
-1. You choose which products to export — titles, prices, stock, variants and images sync to Vio.
+1. You choose which products to publish to Vio — titles, prices, stock, variants and images
+   stay in sync. **Nothing is published automatically when you connect.**
 2. Your products become shoppable inside Vio's network of publisher apps and articles.
 3. When a shopper places an order, it's delivered straight to your Shopify store.
 
@@ -48,7 +49,8 @@ In the Shopify App Store, search for **Vio Sync** and open the listing.
 ### Install
 
 Click **Install**. Shopify shows the permissions Vio Sync is requesting — review them and
-approve to finish installing.
+approve to finish installing. After installing, **Vio Sync** appears under **Sales channels**
+in your admin sidebar, next to Online Store.
 
 <Callout type="info" emoji="🖼️">
 **Screenshot** · `commerce/shopify/02-install.png`
@@ -76,32 +78,52 @@ Vio Sync opens on **Connect to Vio**. Paste your **Vio API key** and click **Con
 **Connect** button, and the "Find your API key in your Vio dashboard" link.
 </Callout>
 
-Once connected, a confirmation dialog appears and you land on **Products**.
+Once connected, a confirmation dialog appears and you land on the **Vio** home screen. It shows
+**0 products published to Vio** — connecting never publishes anything by itself; you decide
+what goes live in the next step.
 
 <Callout type="info" emoji="🖼️">
 **Screenshot** · `commerce/shopify/04-connected.png`
-<br />*Shows:* the "You're connected to Vio" confirmation dialog after connecting a store.
+<br />*Shows:* the "You're connected to Vio" confirmation dialog, and the home screen with the
+"Publishing to Vio" status and the **Manage products** link.
 </Callout>
 
-## Step 4 · Sync your products
+## Step 4 · Publish your products
 
-On the **Products** screen, select the products you want to sell on Vio and click
-**Export selected**. Exports run through a queue — each product's badge flips to **✓ Exported**
-within a few seconds, without reloading the page.
+You can publish from the app, or from any product's page — both work, use whichever you prefer.
+
+### From the app
+
+Open **Products** in the app navigation. Search or filter your catalogue, select the products
+you want to sell on Vio and click **Publish selected**. The **Vio status** column flips to
+**Published** and the products sync to Vio right away.
 
 <Callout type="info" emoji="🖼️">
 **Screenshot** · `commerce/shopify/05-products.png`
-<br />*Shows:* the Products table with search, status and export filters, a "Select all" checkbox, and rows showing type badges (Single / N variants) and export status.
+<br />*Shows:* the Products table with search, the Status filter, the Vio status filter, and rows
+showing thumbnails, status badges, inventory and the Published / Not published Vio status.
 </Callout>
 
 <Callout type="info" emoji="🎥">
 **Video** · `commerce/shopify/sync-demo.mp4`
-<br />*Shows:* selecting products, clicking **Export selected**, and badges turning to
-**✓ Exported**. ~20–30 s.
+<br />*Shows:* selecting products, clicking **Publish selected**, and the Vio status flipping to
+**Published**. ~20–30 s.
+</Callout>
+
+### From a product's page
+
+Vio also shows up in the **Publishing** card on every product page in your Shopify admin —
+just like Online Store. Add the product to the **Vio** channel there (or use the bulk editor)
+and it syncs the same way.
+
+<Callout type="info" emoji="🖼️">
+**Screenshot** · `commerce/shopify/05b-product-page.png`
+<br />*Shows:* a product page in the Shopify admin with the Publishing card listing
+"Online Store, Vio".
 </Callout>
 
 **What syncs:** title, price, stock, variants and images. Only the products you explicitly
-select are exported — nothing syncs automatically on install.
+publish go to Vio — nothing syncs automatically on install or connect.
 
 ## Step 5 · Receiving orders
 
@@ -113,20 +135,21 @@ connection.
 ## Managing your catalogue
 
 From **Products**, use the search field, the **Status** filter (All statuses / Active / Draft
-/ Archived) and the export filter (All products / Exported to Vio / Not exported) to find what
-you need, then select products and:
+/ Archived) and the **Vio status** filter (All products / Published to Vio / Not published) to
+find what you need, then select products and:
 
 | Action | What it does |
 |---|---|
-| **Export selected** | Push the selected products to Vio. |
-| **Remove selected** | Remove the selected products from Vio (with a confirmation step). |
+| **Publish selected** | Make the selected products available on Vio. |
+| **Unpublish selected** | Remove the selected products from Vio (with a confirmation step). |
 
 Open **Connection & log** at any time to see your connection status (store, Vio account,
-API reachability, products exported) and the list of everything currently exported.
+API reachability, products published) and the list of everything currently on Vio.
 
 <Callout type="info" emoji="🖼️">
 **Screenshot** · `commerce/shopify/06-connection-log.png`
-<br />*Shows:* the Connection & log screen — connection status (store, Vio account "Connected", Vio API "Reachable", products exported) and the export log.
+<br />*Shows:* the Connection & log screen — connection status (store, Vio account "Connected",
+Vio API "Reachable", products published) and the synced products list.
 </Callout>
 
 ## Disconnecting
@@ -147,8 +170,22 @@ unreachable, try again in a few minutes.
 </Callout>
 
 <Callout type="warning">
-**Orders don't arrive** — orders only sync back for products that were exported through Vio
-Sync. Confirm the product shows **✓ Exported** on the Products screen.
+**A banner asks you to add a language** — Vio delivers product feeds per country, and Shopify
+requires your store to support a language for that country. Vio accepts English out of the box,
+so this should be rare; if the banner appears, add one of the suggested languages under
+**Settings → Languages** and it clears itself on the next visit.
+</Callout>
+
+<Callout type="warning">
+**Publishing from a product's page doesn't sync** — that path relies on Shopify's channel
+feeds, which need your store to have a **market** for one of Vio's countries (Norway, Denmark,
+Sweden or Finland) under **Settings → Markets**. Publishing from the app's **Products** screen
+works regardless.
+</Callout>
+
+<Callout type="warning">
+**Orders don't arrive** — orders only sync back for products that are published to Vio.
+Confirm the product shows **Published** on the Products screen.
 </Callout>
 
 ## Need help?
